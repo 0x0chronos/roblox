@@ -1,0 +1,683 @@
+
+<h2 class="sr-only">Wireframes interativos do HUD e menus do Abyss Survival — navegue entre as telas usando os botões de navegação</h2>
+<style>
+:root {
+  --abyss-teal: #0B7A8A;
+  --abyss-teal-light: #1AABBD;
+  --abyss-dark: #062B3A;
+  --abyss-panel: rgba(6,43,58,0.92);
+  --abyss-border: rgba(11,122,138,0.5);
+  --abyss-text: #D6F2F5;
+  --abyss-muted: rgba(214,242,245,0.55);
+  --abyss-o2: #48D1CC;
+  --abyss-danger: #C0392B;
+  --abyss-amber: #E67E22;
+  --abyss-green: #1D9E75;
+  --abyss-emissive: #00FF7F;
+}
+.screen { display: none; }
+.screen.active { display: block; }
+.nav { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.nav button {
+  font-size: 12px; padding: 5px 12px;
+  background: var(--color-background-secondary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-secondary); cursor: pointer;
+}
+.nav button.active {
+  background: var(--color-background-info);
+  border-color: var(--color-border-info);
+  color: var(--color-text-info);
+  font-weight: 500;
+}
+.game-frame {
+  position: relative; width: 100%; height: 460px;
+  background: linear-gradient(180deg, #041820 0%, #061E2A 40%, #030F18 100%);
+  border-radius: var(--border-radius-lg);
+  border: 0.5px solid var(--abyss-border);
+  overflow: hidden; font-family: var(--font-sans);
+}
+.ocean-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 30% 60%, rgba(0,100,140,0.25) 0%, transparent 60%),
+              radial-gradient(ellipse at 70% 40%, rgba(0,60,80,0.2) 0%, transparent 50%);
+}
+.particles { position: absolute; inset: 0; overflow: hidden; }
+.bubble {
+  position: absolute; border-radius: 50%;
+  background: rgba(180,240,255,0.15);
+  border: 0.5px solid rgba(180,240,255,0.3);
+  animation: float linear infinite;
+}
+@keyframes float {
+  from { transform: translateY(0); opacity: 0.6; }
+  to   { transform: translateY(-460px); opacity: 0; }
+}
+.panel {
+  position: absolute;
+  background: rgba(6,43,58,0.88);
+  border: 0.5px solid rgba(11,122,138,0.45);
+  border-radius: 8px;
+  backdrop-filter: blur(4px);
+  color: var(--abyss-text);
+  font-size: 11px;
+}
+.bar-wrap { position: relative; height: 10px; border-radius: 5px; background: rgba(255,255,255,0.08); overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 5px; transition: width 0.3s; }
+.bar-label { font-size: 10px; color: var(--abyss-muted); margin-bottom: 3px; letter-spacing: 0.06em; text-transform: uppercase; }
+.depth-box {
+  position: absolute; top: 12px; right: 12px;
+  padding: 8px 12px; text-align: right;
+}
+.depth-num { font-size: 22px; font-weight: 500; color: var(--abyss-text); line-height: 1; }
+.depth-unit { font-size: 10px; color: var(--abyss-teal-light); }
+.zone-name { font-size: 10px; color: var(--abyss-muted); margin-top: 2px; letter-spacing: 0.05em; }
+.sonar {
+  position: absolute; top: 12px; left: 12px;
+  width: 80px; height: 80px;
+  padding: 0;
+  border-radius: 50% !important;
+  overflow: hidden;
+}
+.sonar-ring {
+  position: absolute; border-radius: 50%;
+  border: 0.5px solid rgba(11,122,138,0.4);
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+}
+.sonar-sweep {
+  position: absolute; width: 50%; height: 50%;
+  top: 0; left: 50%;
+  transform-origin: bottom left;
+  background: linear-gradient(135deg, rgba(0,255,120,0.25), transparent);
+  animation: sweep 3s linear infinite;
+}
+@keyframes sweep { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.sonar-dot { position: absolute; border-radius: 50%; }
+.hotbar {
+  position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 4px; padding: 6px 8px;
+}
+.slot {
+  width: 40px; height: 40px;
+  background: rgba(6,43,58,0.9);
+  border: 0.5px solid rgba(11,122,138,0.4);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.slot.active { border: 1.5px solid var(--abyss-teal-light); }
+.slot-icon { font-size: 16px; color: var(--abyss-teal-light); }
+.slot-qty {
+  position: absolute; bottom: 2px; right: 3px;
+  font-size: 9px; color: var(--abyss-muted);
+  font-family: var(--font-mono);
+}
+.o2-panel {
+  position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
+  width: 200px; padding: 7px 10px;
+}
+.hp-panel {
+  position: absolute; left: 12px; bottom: 100px;
+  width: 130px; padding: 7px 10px;
+}
+.pressure-panel {
+  position: absolute; right: 12px; bottom: 100px;
+  width: 130px; padding: 7px 10px;
+}
+.objective-panel {
+  position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%);
+  width: 150px; padding: 8px 10px;
+}
+.obj-title { font-size: 9px; color: var(--abyss-teal-light); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
+.obj-name { font-size: 11px; font-weight: 500; color: var(--abyss-text); margin-bottom: 2px; }
+.obj-desc { font-size: 10px; color: var(--abyss-muted); line-height: 1.4; margin-bottom: 6px; }
+.event-banner {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+  padding: 5px 14px; white-space: nowrap;
+  background: rgba(192,57,43,0.85);
+  border: 0.5px solid rgba(255,100,80,0.5);
+  border-radius: 6px;
+  font-size: 11px; color: #FFD0C8; font-weight: 500;
+  display: flex; align-items: center; gap: 6px;
+}
+.event-timer { font-family: var(--font-mono); font-size: 10px; opacity: 0.8; }
+.tooltip {
+  position: absolute; background: rgba(6,43,58,0.96);
+  border: 0.5px solid var(--abyss-teal);
+  border-radius: 6px; padding: 6px 10px;
+  font-size: 10px; color: var(--abyss-text);
+  pointer-events: none; white-space: nowrap; z-index: 10;
+}
+.menu-screen {
+  position: absolute; inset: 0;
+  background: rgba(3,12,20,0.95);
+  display: flex; align-items: stretch;
+  border-radius: var(--border-radius-lg);
+}
+.menu-sidebar {
+  width: 160px; border-right: 0.5px solid var(--abyss-border);
+  padding: 16px 8px; display: flex; flex-direction: column; gap: 4px;
+}
+.menu-item {
+  padding: 7px 10px; border-radius: 6px;
+  font-size: 12px; color: var(--abyss-muted); cursor: pointer;
+  display: flex; align-items: center; gap: 7px;
+}
+.menu-item.active { background: rgba(11,122,138,0.2); color: var(--abyss-teal-light); border: 0.5px solid rgba(11,122,138,0.3); }
+.menu-content { flex: 1; padding: 16px; overflow: hidden; }
+.inv-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-bottom: 12px; }
+.inv-slot {
+  aspect-ratio: 1; background: rgba(255,255,255,0.04);
+  border: 0.5px solid rgba(255,255,255,0.08);
+  border-radius: 5px; display: flex; align-items: center;
+  justify-content: center; position: relative; cursor: pointer;
+}
+.inv-slot:hover { border-color: var(--abyss-teal); }
+.inv-slot.filled { border-color: rgba(11,122,138,0.35); background: rgba(11,122,138,0.1); }
+.inv-slot.rare { border-color: rgba(150,60,200,0.5); background: rgba(150,60,200,0.08); }
+.inv-slot.epic { border-color: rgba(230,126,34,0.5); background: rgba(230,126,34,0.08); }
+.item-icon { font-size: 15px; }
+.item-qty { position: absolute; bottom: 1px; right: 3px; font-size: 8px; color: var(--abyss-muted); font-family: var(--font-mono); }
+.item-detail {
+  background: rgba(255,255,255,0.03);
+  border: 0.5px solid var(--abyss-border);
+  border-radius: 6px; padding: 10px;
+}
+.item-detail-name { font-size: 13px; font-weight: 500; color: var(--abyss-text); margin-bottom: 2px; }
+.item-detail-type { font-size: 10px; color: var(--abyss-teal-light); margin-bottom: 6px; }
+.item-detail-desc { font-size: 10px; color: var(--abyss-muted); line-height: 1.5; margin-bottom: 8px; }
+.rarity-badge {
+  display: inline-block; padding: 2px 7px; border-radius: 4px;
+  font-size: 9px; font-weight: 500; letter-spacing: 0.04em;
+}
+.r-common { background: rgba(127,140,141,0.2); color: #A0ADB0; }
+.r-uncommon { background: rgba(41,128,185,0.2); color: #76B8E0; }
+.r-rare { background: rgba(142,68,173,0.2); color: #C39EDB; }
+.r-epic { background: rgba(230,126,34,0.2); color: #F0A855; }
+.craft-list { display: flex; flex-direction: column; gap: 4px; max-height: 240px; overflow-y: auto; }
+.craft-item {
+  padding: 7px 9px; border-radius: 5px;
+  background: rgba(255,255,255,0.03);
+  border: 0.5px solid rgba(255,255,255,0.08);
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+}
+.craft-item:hover { border-color: var(--abyss-teal); background: rgba(11,122,138,0.1); }
+.craft-item.selected { border-color: var(--abyss-teal); background: rgba(11,122,138,0.15); }
+.craft-name { font-size: 11px; color: var(--abyss-text); flex: 1; }
+.craft-status { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.craft-status.ok { background: var(--abyss-green); }
+.craft-status.no { background: rgba(255,255,255,0.2); }
+.craft-detail { margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.03); border: 0.5px solid var(--abyss-border); border-radius: 6px; }
+.ingredient-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 3px 0; font-size: 10px;
+}
+.ing-name { color: var(--abyss-muted); }
+.ing-qty { font-family: var(--font-mono); }
+.ing-ok { color: var(--abyss-green); }
+.ing-no { color: var(--abyss-danger); }
+.btn-craft {
+  width: 100%; margin-top: 8px; padding: 7px;
+  background: rgba(11,122,138,0.25); border: 0.5px solid var(--abyss-teal);
+  border-radius: 5px; color: var(--abyss-teal-light);
+  font-size: 11px; cursor: pointer; font-weight: 500;
+}
+.btn-craft:hover { background: rgba(11,122,138,0.4); }
+.btn-craft:disabled { opacity: 0.35; cursor: not-allowed; }
+.notif-stack { position: absolute; bottom: 110px; right: 12px; display: flex; flex-direction: column; gap: 4px; }
+.notif {
+  padding: 6px 10px; border-radius: 5px;
+  font-size: 10px; display: flex; align-items: center; gap: 6px;
+  white-space: nowrap;
+}
+.notif-lore { background: rgba(60,29,138,0.85); border: 0.5px solid rgba(100,70,200,0.5); color: #C5AFF5; }
+.notif-success { background: rgba(15,110,86,0.85); border: 0.5px solid rgba(30,180,120,0.4); color: #7FDDBB; }
+.notif-warn { background: rgba(120,65,10,0.85); border: 0.5px solid rgba(230,126,34,0.4); color: #F5C060; }
+.controls-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.ctrl-lbl { font-size: 11px; color: var(--color-text-secondary); display: flex; align-items: center; gap: 6px; }
+.section-label {
+  font-size: 10px; color: var(--abyss-teal-light);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 6px; padding-bottom: 4px;
+  border-bottom: 0.5px solid rgba(11,122,138,0.25);
+}
+</style>
+
+<div class="nav" id="nav">
+  <button class="active" onclick="show('hud')">HUD em jogo</button>
+  <button onclick="show('hud-event')">HUD — evento</button>
+  <button onclick="show('inventory')">Inventário</button>
+  <button onclick="show('crafting')">Fabricação</button>
+  <button onclick="show('tutorial')">Tutorial</button>
+  <button onclick="show('notifications')">Notificações</button>
+</div>
+
+<div class="controls-row" id="ctrl-hud">
+  <label class="ctrl-lbl">O₂ <input type="range" min="0" max="100" value="72" id="o2-slider" style="width:80px"> <span id="o2-val">72%</span></label>
+  <label class="ctrl-lbl">HP <input type="range" min="0" max="100" value="85" id="hp-slider" style="width:80px"> <span id="hp-val">85%</span></label>
+  <label class="ctrl-lbl">Prof. <input type="range" min="0" max="1500" value="180" id="depth-slider" style="width:80px"> <span id="depth-val">180m</span></label>
+</div>
+
+<div id="screen-hud" class="screen active">
+<div class="game-frame">
+  <div class="ocean-bg"></div>
+  <div class="particles" id="particles"></div>
+
+  <div class="sonar panel">
+    <div class="sonar-ring" style="width:72px;height:72px"></div>
+    <div class="sonar-ring" style="width:50px;height:50px"></div>
+    <div class="sonar-ring" style="width:28px;height:28px"></div>
+    <div class="sonar-sweep"></div>
+    <div class="sonar-dot" style="width:5px;height:5px;background:#1D9E75;top:22px;left:45px"></div>
+    <div class="sonar-dot" style="width:4px;height:4px;background:#1D9E75;top:55px;left:28px"></div>
+    <div class="sonar-dot" style="width:6px;height:6px;background:#C0392B;top:35px;left:20px;animation:blink 1s infinite"></div>
+  </div>
+
+  <div class="depth-box panel">
+    <div class="depth-num" id="hud-depth">180</div>
+    <div class="depth-unit">metros</div>
+    <div class="zone-name" id="hud-zone">Zona 2 — Recife Profundo</div>
+  </div>
+
+  <div class="o2-panel panel">
+    <div class="bar-label">Oxigênio</div>
+    <div class="bar-wrap">
+      <div class="bar-fill" id="o2-bar" style="width:72%;background:#48D1CC"></div>
+    </div>
+    <div style="text-align:right;font-size:9px;color:var(--abyss-muted);margin-top:2px;font-family:var(--font-mono)" id="o2-num">72%</div>
+  </div>
+
+  <div class="hp-panel panel" id="hp-panel">
+    <div class="bar-label">Integridade</div>
+    <div class="bar-wrap">
+      <div class="bar-fill" id="hp-bar" style="width:85%;background:#1D9E75"></div>
+    </div>
+  </div>
+
+  <div class="pressure-panel panel">
+    <div class="bar-label">Pressão</div>
+    <div class="bar-wrap">
+      <div class="bar-fill" id="pressure-bar" style="width:35%;background:#E67E22"></div>
+    </div>
+    <div style="font-size:9px;color:var(--abyss-amber);margin-top:2px" id="pressure-txt">Traje T1 — protegido</div>
+  </div>
+
+  <div class="objective-panel panel">
+    <div class="obj-title">Objetivo</div>
+    <div class="obj-name">Explorar Recife</div>
+    <div class="obj-desc">Alcance a entrada da Zona 3</div>
+    <div class="bar-wrap" style="margin-top:4px">
+      <div class="bar-fill" style="width:40%;background:var(--abyss-teal)"></div>
+    </div>
+    <div style="font-size:9px;color:var(--abyss-muted);margin-top:2px">40m / 100m</div>
+  </div>
+
+  <div class="hotbar panel">
+    <div class="slot active"><span class="slot-icon">⚒</span></div>
+    <div class="slot"><span class="slot-icon">🔦</span></div>
+    <div class="slot"><span class="slot-icon">🏹</span></div>
+    <div class="slot"><span class="slot-icon" style="font-size:12px;color:var(--abyss-green)">+</span><span class="slot-qty">×3</span></div>
+    <div class="slot"><span class="slot-icon" style="font-size:11px;opacity:.3">—</span></div>
+    <div class="slot"><span class="slot-icon" style="font-size:11px;opacity:.3">—</span></div>
+  </div>
+</div>
+</div>
+
+<div id="screen-hud-event" class="screen">
+<div class="game-frame">
+  <div class="ocean-bg" style="background:radial-gradient(ellipse at 50% 50%, rgba(192,57,43,0.15) 0%, transparent 60%)"></div>
+  <div class="particles" id="particles2"></div>
+
+  <div class="event-banner">
+    <span>⚠ Swarm de Criaturas</span>
+    <span class="event-timer">02:34</span>
+  </div>
+
+  <div class="sonar panel" style="top:12px;left:12px">
+    <div class="sonar-ring" style="width:72px;height:72px"></div>
+    <div class="sonar-ring" style="width:50px;height:50px"></div>
+    <div class="sonar-ring" style="width:28px;height:28px"></div>
+    <div class="sonar-sweep" style="background:linear-gradient(135deg,rgba(255,60,30,0.3),transparent)"></div>
+    <div class="sonar-dot" style="width:7px;height:7px;background:#C0392B;top:18px;left:40px"></div>
+    <div class="sonar-dot" style="width:6px;height:6px;background:#C0392B;top:50px;left:18px"></div>
+    <div class="sonar-dot" style="width:6px;height:6px;background:#C0392B;top:40px;left:55px"></div>
+    <div class="sonar-dot" style="width:5px;height:5px;background:#C0392B;top:28px;left:12px"></div>
+  </div>
+
+  <div class="depth-box panel">
+    <div class="depth-num">340</div>
+    <div class="depth-unit">metros</div>
+    <div class="zone-name">Zona 3 — Abyss Raso</div>
+  </div>
+
+  <div class="o2-panel panel" style="bottom:60px">
+    <div class="bar-label">Oxigênio</div>
+    <div class="bar-wrap"><div class="bar-fill" style="width:28%;background:#C0392B"></div></div>
+    <div style="text-align:right;font-size:9px;color:#F08080;margin-top:2px;font-family:var(--font-mono)">28% — CRÍTICO</div>
+  </div>
+
+  <div class="hp-panel panel" style="left:12px;bottom:100px">
+    <div class="bar-label">Integridade</div>
+    <div class="bar-wrap"><div class="bar-fill" style="width:42%;background:#E67E22"></div></div>
+  </div>
+
+  <div style="position:absolute;right:12px;bottom:100px;width:150px;" class="panel" style="padding:8px 10px">
+    <div class="obj-title" style="color:#F08080">Defender a Base</div>
+    <div class="obj-name" style="font-size:11px">Sobreviver ao swarm</div>
+    <div class="obj-desc">Proteja os módulos por 2:34</div>
+    <div class="bar-wrap" style="margin-top:4px"><div class="bar-fill" style="width:62%;background:#C0392B"></div></div>
+  </div>
+
+  <div style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:130px;" class="panel">
+    <div style="padding:8px 10px">
+      <div class="section-label" style="color:#F08080">Dano de borda</div>
+      <div style="font-size:10px;color:var(--abyss-muted);margin-bottom:6px">Seta vermelha indica direção da criatura que atacou</div>
+      <div style="width:100%;height:2px;background:rgba(192,57,43,0.4);border-radius:1px;margin-bottom:4px"></div>
+      <div style="font-size:9px;color:rgba(240,128,128,0.7)">← criatura detectada</div>
+    </div>
+  </div>
+
+  <div class="hotbar panel">
+    <div class="slot active"><span class="slot-icon">🏹</span><span class="slot-qty">×3</span></div>
+    <div class="slot"><span class="slot-icon">⚒</span></div>
+    <div class="slot"><span class="slot-icon">🔦</span></div>
+    <div class="slot"><span class="slot-icon" style="font-size:12px;color:var(--abyss-green)">+</span><span class="slot-qty">×1</span></div>
+    <div class="slot"><span class="slot-icon" style="font-size:11px;opacity:.3">—</span></div>
+    <div class="slot"><span class="slot-icon" style="font-size:11px;opacity:.3">—</span></div>
+  </div>
+</div>
+</div>
+
+<div id="screen-inventory" class="screen">
+<div class="game-frame">
+  <div class="ocean-bg"></div>
+  <div class="menu-screen">
+    <div class="menu-sidebar">
+      <div style="font-size:11px;font-weight:500;color:var(--abyss-text);padding:4px 10px 10px;border-bottom:0.5px solid var(--abyss-border);margin-bottom:4px">Inventário</div>
+      <div class="menu-item active"><i class="ti ti-box" aria-hidden="true"></i>Todos</div>
+      <div class="menu-item"><i class="ti ti-diamond" aria-hidden="true"></i>Recursos</div>
+      <div class="menu-item"><i class="ti ti-shield" aria-hidden="true"></i>Equipamento</div>
+      <div class="menu-item"><i class="ti ti-building-factory" aria-hidden="true"></i>Módulos</div>
+      <div style="flex:1"></div>
+      <div style="padding:8px 10px;border-top:0.5px solid var(--abyss-border);margin-top:4px">
+        <div class="bar-label">Capacidade</div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:58%;background:var(--abyss-teal)"></div></div>
+        <div style="font-size:9px;color:var(--abyss-muted);margin-top:2px">29 / 50 slots</div>
+      </div>
+    </div>
+    <div class="menu-content">
+      <div class="inv-grid" id="inv-grid"></div>
+      <div class="item-detail" id="item-detail">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <div style="width:36px;height:36px;background:rgba(11,122,138,0.15);border:0.5px solid var(--abyss-teal);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:20px">💎</div>
+          <div>
+            <div class="item-detail-name">Cristal Marinho</div>
+            <div class="item-detail-type">Recurso · Zona 2</div>
+          </div>
+        </div>
+        <span class="rarity-badge r-uncommon">Incomum</span>
+        <div class="item-detail-desc" style="margin-top:6px">Cristal bioluminescente encontrado nos recifes profundos. Essencial para eletrônica e equipamentos Tier 1.</div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--abyss-muted);margin-top:4px">
+          <span>Quantidade: <span style="color:var(--abyss-text);font-family:var(--font-mono)">12</span></span>
+          <span>Stack máx: <span style="color:var(--abyss-text);font-family:var(--font-mono)">99</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div id="screen-crafting" class="screen">
+<div class="game-frame">
+  <div class="ocean-bg"></div>
+  <div class="menu-screen">
+    <div class="menu-sidebar">
+      <div style="font-size:11px;font-weight:500;color:var(--abyss-text);padding:4px 10px 10px;border-bottom:0.5px solid var(--abyss-border);margin-bottom:4px">Fabricação</div>
+      <div class="menu-item active"><i class="ti ti-layers-intersect" aria-hidden="true"></i>Tier 0</div>
+      <div class="menu-item"><i class="ti ti-layers-intersect-2" aria-hidden="true"></i>Tier 1</div>
+      <div class="menu-item" style="opacity:.4"><i class="ti ti-lock" aria-hidden="true"></i>Tier 2</div>
+      <div style="flex:1"></div>
+      <div style="padding:8px 10px;border-top:0.5px solid var(--abyss-border)">
+        <div class="section-label">Bancada</div>
+        <div style="font-size:10px;color:var(--abyss-green)">Mesa de Trabalho</div>
+        <div style="font-size:9px;color:var(--abyss-muted);margin-top:2px">Disponível na base</div>
+      </div>
+    </div>
+    <div class="menu-content" style="display:flex;gap:10px;padding:12px">
+      <div style="flex:1">
+        <div class="section-label">Receitas disponíveis</div>
+        <div class="craft-list" id="craft-list"></div>
+      </div>
+      <div style="width:160px">
+        <div class="section-label">Detalhe</div>
+        <div class="craft-detail" id="craft-detail">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <div style="width:32px;height:32px;background:rgba(11,122,138,0.15);border:0.5px solid var(--abyss-teal);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:18px">🔦</div>
+            <div>
+              <div style="font-size:11px;font-weight:500;color:var(--abyss-text)">Lanterna Básica</div>
+              <div style="font-size:9px;color:var(--abyss-teal-light)">Ferramenta · T0</div>
+            </div>
+          </div>
+          <div class="section-label">Ingredientes</div>
+          <div class="ingredient-row">
+            <span class="ing-name">Sucata</span>
+            <span class="ing-qty ing-ok">3 / 3 ✓</span>
+          </div>
+          <div class="ingredient-row">
+            <span class="ing-name">Esporo Bio.</span>
+            <span class="ing-qty ing-ok">1 / 1 ✓</span>
+          </div>
+          <div style="font-size:9px;color:var(--abyss-muted);margin-top:6px;margin-bottom:6px">Tempo: 4 segundos</div>
+          <button class="btn-craft">Fabricar →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div id="screen-tutorial" class="screen">
+<div class="game-frame">
+  <div class="ocean-bg"></div>
+  <div class="particles" id="particles3"></div>
+
+  <div class="sonar panel" style="top:12px;left:12px">
+    <div class="sonar-ring" style="width:72px;height:72px"></div>
+    <div class="sonar-ring" style="width:50px;height:50px"></div>
+    <div class="sonar-sweep"></div>
+  </div>
+
+  <div class="depth-box panel"><div class="depth-num">12</div><div class="depth-unit">metros</div><div class="zone-name">Zona 1 — Zona Costeira</div></div>
+
+  <div class="o2-panel panel" style="bottom:60px">
+    <div class="bar-label">Oxigênio</div>
+    <div class="bar-wrap"><div class="bar-fill" style="width:88%;background:#48D1CC"></div></div>
+    <div style="text-align:right;font-size:9px;color:var(--abyss-muted);margin-top:2px;font-family:var(--font-mono)">88%</div>
+  </div>
+
+  <div class="hotbar panel">
+    <div class="slot active"><span class="slot-icon">⚒</span></div>
+    <div class="slot"><span class="slot-icon" style="opacity:.3">—</span></div>
+    <div class="slot"><span class="slot-icon" style="opacity:.3">—</span></div>
+    <div class="slot"><span class="slot-icon" style="opacity:.3">—</span></div>
+    <div class="slot"><span class="slot-icon" style="opacity:.3">—</span></div>
+    <div class="slot"><span class="slot-icon" style="opacity:.3">—</span></div>
+  </div>
+
+  <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:240px;" class="panel">
+    <div style="padding:12px">
+      <div style="font-size:9px;color:var(--abyss-teal-light);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">Tutorial</div>
+      <div style="font-size:13px;font-weight:500;color:var(--abyss-text);margin-bottom:4px">Colete Algas Nutritivas</div>
+      <div style="font-size:11px;color:var(--abyss-muted);line-height:1.5;margin-bottom:10px">Aproxime-se das algas e pressione <span style="background:rgba(11,122,138,0.3);border:0.5px solid var(--abyss-teal);padding:1px 5px;border-radius:3px;font-family:var(--font-mono);font-size:10px;color:var(--abyss-teal-light)">E</span> para coletar</div>
+      <div class="bar-wrap">
+        <div class="bar-fill" style="width:33%;background:var(--abyss-teal)"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--abyss-muted);margin-top:3px">
+        <span>Progresso</span>
+        <span style="font-family:var(--font-mono);color:var(--abyss-text)">1 / 3</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="position:absolute;bottom:110px;left:50%;transform:translateX(-50%);" class="panel">
+    <div style="padding:5px 12px;font-size:10px;color:var(--abyss-muted)">
+      Seta de waypoint → indica direção do objetivo
+    </div>
+  </div>
+
+  <div style="position:absolute;top:50%;left:68%;font-size:22px;color:rgba(72,209,204,0.7);animation:bounce 1s ease-in-out infinite">↓</div>
+</div>
+</div>
+
+<div id="screen-notifications" class="screen">
+<div class="game-frame">
+  <div class="ocean-bg"></div>
+  <div class="particles" id="particles4"></div>
+  <div class="sonar panel" style="top:12px;left:12px">
+    <div class="sonar-ring" style="width:72px;height:72px"></div>
+    <div class="sonar-ring" style="width:50px;height:50px"></div>
+    <div class="sonar-sweep"></div>
+  </div>
+  <div class="depth-box panel"><div class="depth-num">480</div><div class="depth-unit">metros</div><div class="zone-name">Zona 3 — Abyss Raso</div></div>
+  <div class="o2-panel panel" style="bottom:60px">
+    <div class="bar-label">Oxigênio</div>
+    <div class="bar-wrap"><div class="bar-fill" style="width:61%;background:#48D1CC"></div></div>
+  </div>
+  <div class="hotbar panel">
+    <div class="slot active"><span class="slot-icon">🏹</span></div>
+    <div class="slot"><span class="slot-icon">🔦</span></div>
+    <div class="slot"><span class="slot-icon">⚒</span></div>
+    <div class="slot"><span class="slot-icon" style="opacity:.3">—</span></div>
+    <div class="slot"><span class="slot-icon" style="opacity:.3">—</span></div>
+    <div class="slot"><span class="slot-icon" style="opacity:.3">—</span></div>
+  </div>
+  <div class="notif-stack">
+    <div class="notif notif-lore">📖 Fragmento encontrado: Log do Capitão</div>
+    <div class="notif notif-success">✓ Missão concluída: Minerador</div>
+    <div class="notif notif-warn">⚠ Zona 3 à frente — traje T2 recomendado</div>
+  </div>
+</div>
+</div>
+
+<style>
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+</style>
+
+<script>
+const screens = ['hud','hud-event','inventory','crafting','tutorial','notifications'];
+
+function show(id) {
+  screens.forEach(s => {
+    document.getElementById('screen-'+s).classList.toggle('active', s===id);
+  });
+  document.querySelectorAll('.nav button').forEach((b,i) => {
+    b.classList.toggle('active', screens[i]===id);
+  });
+  const ctrlHud = document.getElementById('ctrl-hud');
+  if(ctrlHud) ctrlHud.style.display = (id==='hud') ? 'flex' : 'none';
+}
+
+function makeBubbles(containerId, count) {
+  const c = document.getElementById(containerId);
+  if(!c) return;
+  for(let i=0;i<count;i++){
+    const b = document.createElement('div');
+    b.className = 'bubble';
+    const sz = 2+Math.random()*5;
+    b.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;bottom:${Math.random()*100}%;animation-duration:${6+Math.random()*10}s;animation-delay:${Math.random()*8}s`;
+    c.appendChild(b);
+  }
+}
+makeBubbles('particles',18);
+makeBubbles('particles2',18);
+makeBubbles('particles3',18);
+makeBubbles('particles4',18);
+
+const o2Slider = document.getElementById('o2-slider');
+const hpSlider = document.getElementById('hp-slider');
+const depthSlider = document.getElementById('depth-slider');
+
+function getZone(d) {
+  if(d<50) return 'Zona 1 — Zona Costeira';
+  if(d<200) return 'Zona 2 — Recife Profundo';
+  if(d<600) return 'Zona 3 — Abyss Raso';
+  if(d<1500) return 'Zona 4 — Abyss Profundo';
+  return 'Zona 5 — Hadal';
+}
+function getPressure(d) {
+  if(d<50) return {pct:0,txt:'Sem pressão',color:'#1D9E75'};
+  if(d<200) return {pct:20,txt:'Traje T1 — protegido',color:'#E67E22'};
+  if(d<600) return {pct:50,txt:'Traje T2 necessário',color:'#E67E22'};
+  return {pct:80,txt:'TRAJE INSUFICIENTE',color:'#C0392B'};
+}
+
+function updateHUD() {
+  const o2 = parseInt(o2Slider.value);
+  const hp = parseInt(hpSlider.value);
+  const depth = parseInt(depthSlider.value);
+  document.getElementById('o2-val').textContent = o2+'%';
+  document.getElementById('hp-val').textContent = hp+'%';
+  document.getElementById('depth-val').textContent = depth+'m';
+
+  const o2Bar = document.getElementById('o2-bar');
+  const o2Num = document.getElementById('o2-num');
+  o2Bar.style.width = o2+'%';
+  o2Bar.style.background = o2>30?'#48D1CC':o2>15?'#E67E22':'#C0392B';
+  o2Num.textContent = o2+'%';
+  o2Num.style.color = o2>30?'rgba(214,242,245,0.55)':o2>15?'#F0A855':'#F08080';
+
+  const hpBar = document.getElementById('hp-bar');
+  hpBar.style.width = hp+'%';
+  hpBar.style.background = hp>50?'#1D9E75':hp>25?'#E67E22':'#C0392B';
+  const hpPanel = document.getElementById('hp-panel');
+  hpPanel.style.opacity = hp<80?'1':'0.4';
+
+  document.getElementById('hud-depth').textContent = depth;
+  document.getElementById('hud-zone').textContent = getZone(depth);
+
+  const p = getPressure(depth);
+  document.getElementById('pressure-bar').style.width = p.pct+'%';
+  document.getElementById('pressure-bar').style.background = p.color;
+  document.getElementById('pressure-txt').textContent = p.txt;
+  document.getElementById('pressure-txt').style.color = p.color;
+}
+
+o2Slider.addEventListener('input', updateHUD);
+hpSlider.addEventListener('input', updateHUD);
+depthSlider.addEventListener('input', updateHUD);
+updateHUD();
+
+const invItems = [
+  {icon:'🌿',qty:18,rarity:'filled'},{icon:'🔩',qty:7,rarity:'filled'},
+  {icon:'🪨',qty:24,rarity:'filled'},{icon:'⚙',qty:5,rarity:'filled'},
+  {icon:'💎',qty:12,rarity:'filled'},{icon:'🔗',qty:3,rarity:'filled'},
+  {icon:'🧪',qty:2,rarity:'rare'},{icon:'⚡',qty:1,rarity:'rare'},
+  {icon:'🔥',qty:1,rarity:'epic'},{icon:'',qty:0,rarity:''},{icon:'',qty:0,rarity:''},{icon:'',qty:0,rarity:''},
+];
+const grid = document.getElementById('inv-grid');
+if(grid) invItems.forEach(item => {
+  const s = document.createElement('div');
+  s.className = 'inv-slot'+(item.rarity?' '+item.rarity:'');
+  if(item.icon) s.innerHTML = `<span class="item-icon">${item.icon}</span>${item.qty>1?`<span class="item-qty">${item.qty}</span>`:''}`;
+  grid.appendChild(s);
+});
+
+const craftRecipes = [
+  {name:'Faca de Coleta',icon:'⚒',can:true},
+  {name:'Lanterna Básica',icon:'🔦',can:true},
+  {name:'Kit Médico',icon:'🩹',can:true},
+  {name:'Baú de Madeira',icon:'📦',can:false},
+  {name:'Módulo de O₂',icon:'💨',can:false},
+  {name:'Tanque O₂ Médio',icon:'🫧',can:false},
+];
+const cl = document.getElementById('craft-list');
+if(cl) craftRecipes.forEach((r,i) => {
+  const d = document.createElement('div');
+  d.className = 'craft-item'+(i===1?' selected':'');
+  d.innerHTML = `<span style="font-size:14px">${r.icon}</span><span class="craft-name">${r.name}</span><span class="craft-status ${r.can?'ok':'no'}"></span>`;
+  cl.appendChild(d);
+});
+</script>

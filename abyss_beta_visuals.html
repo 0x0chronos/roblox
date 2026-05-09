@@ -1,0 +1,1040 @@
+
+<h2 class="sr-only">Painel visual completo do beta do Abyss Survival com ilha, biomas, mesa de craft, tubarão melhorado e todos os elementos necessários para o lançamento</h2>
+<style>
+* { box-sizing: border-box; }
+.nav { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
+.nav button { font-size: 11px; padding: 4px 10px; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); color: var(--color-text-secondary); cursor: pointer; }
+.nav button.active { background: var(--color-background-info); border-color: var(--color-border-info); color: var(--color-text-info); font-weight: 500; }
+.screen { display: none; }
+.screen.active { display: block; }
+canvas { border-radius: var(--border-radius-lg); border: 0.5px solid var(--color-border-tertiary); display: block; width: 100%; background: #041820; }
+.desc { font-size: 11px; color: var(--color-text-secondary); margin-top: 8px; line-height: 1.6; padding: 8px 12px; background: var(--color-background-secondary); border-radius: var(--border-radius-md); border-left: 2px solid #0B7A8A; }
+</style>
+
+<div class="nav">
+  <button class="active" onclick="show('island')">🏝 Ilha spawn</button>
+  <button onclick="show('z1')">🐠 Z1 — Baía de Coral</button>
+  <button onclick="show('z2')">🌿 Z2 — Floresta Kelp</button>
+  <button onclick="show('z3')">🟢 Z3 — Planaltos</button>
+  <button onclick="show('shark')">🦈 Tubarão melhorado</button>
+  <button onclick="show('craft')">⚒ Mesa de craft</button>
+</div>
+
+<div id="screen-island" class="screen active">
+<canvas id="c-island" height="380"></canvas>
+<div class="desc">🏝 <strong>Ilha de spawn</strong> — Plataforma rochosa semi-submersa onde o Kosmos-7 está encalhado. Rochas escuras com vegetação tropical no topo, coral colorido nas bordas submersas. O jogador nasce DENTRO do submarino e sai pela escotilha. A ilha é visível da superfície mas o jogo começa debaixo d'água.</div>
+</div>
+
+<div id="screen-z1" class="screen">
+<canvas id="c-z1" height="380"></canvas>
+<div class="desc">🐠 <strong>Baía de Coral — Z1 (0–50m)</strong> — Ambiente completo com luz solar penetrando, corais de 5 tipos, algas ondulantes, areia texturizada, cardumes de peixe, tartarugas e água-viva. O tubarão patrulha a borda direita. Visibilidade total, temperatura quente, falsa segurança.</div>
+</div>
+
+<div id="screen-z2" class="screen">
+<canvas id="c-z2" height="380"></canvas>
+<div class="desc">🌿 <strong>Floresta de Kelp — Z2 (50–200m)</strong> — Kelp gigante de 20 metros de altura, luz azulada filtrada, bioluminescência suave nos corais. Boto abissal nada ao fundo. Enguia espreitando em buraco. Tubarão Caçador patrulhando entre o kelp.</div>
+</div>
+
+<div id="screen-z3" class="screen">
+<canvas id="c-z3" height="380"></canvas>
+<div class="desc">🟢 <strong>Planaltos Abissais — Z3 (200–600m)</strong> — Escuridão quase total. Fissuras bioluminescentes verdes iluminam o fundo. Neve marinha descendente. Chaminé hidrotérmica ao fundo. Polvo Abissal com luz falsa de isca. Baleia das Fendas passando ao longe.</div>
+</div>
+
+<div id="screen-shark" class="screen">
+<canvas id="c-shark" height="380"></canvas>
+<div class="desc">🦈 <strong>Tubarão Caçador — versão melhorada</strong> — Mais detalhado, mandíbula 30% maior, musculatura definida, fendas branquiais proeminentes, olhos sem íris. Dorso cinza-escuro, ventre branco-sujo. Cauda assimétrica mais realista. Referência de silhueta para o Blender MCP.</div>
+</div>
+
+<div id="screen-craft" class="screen">
+<canvas id="c-craft" height="380"></canvas>
+<div class="desc">⚒ <strong>Mesa de Fabricação</strong> — Layout sci-fi futurista com fundo escuro, painel de receitas à esquerda, detalhe do item central, ingredientes à direita. Indicadores de disponibilidade (verde = tem, vermelho = falta). Timer de fabricação. Botão de craftar com glow azul-ciano.</div>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelector('#screen-'+id).classList.add('active');
+  document.querySelectorAll('.nav button').forEach((b,i) => {
+    b.classList.toggle('active', b.onclick.toString().includes(id));
+  });
+  if(!drawn[id]) { drawn[id]=true; drawFns[id](); }
+}
+
+const drawn = {};
+const drawFns = {};
+let globalT = 0;
+
+// ── ILHA ────────────────────────────────────────────────────
+drawFns.island = function() {
+  const c = document.getElementById('c-island');
+  const ctx = c.getContext('2d');
+  const W = c.width = 700, H = 380;
+
+  function drawIsland(t) {
+    ctx.clearRect(0,0,W,H);
+
+    // Céu
+    const sky = ctx.createLinearGradient(0,0,0,H*0.35);
+    sky.addColorStop(0,'#0A2840');
+    sky.addColorStop(1,'#0D4F6E');
+    ctx.fillStyle=sky; ctx.fillRect(0,0,W,H*0.35);
+
+    // Estrelas
+    for(let i=0;i<40;i++){
+      const sx=(i*137)%W, sy=(i*97)%( H*0.32);
+      ctx.fillStyle=`rgba(255,255,255,${0.3+Math.sin(t+i)*0.2})`;
+      ctx.beginPath();ctx.arc(sx,sy,0.7,0,Math.PI*2);ctx.fill();
+    }
+
+    // Oceano de superfície
+    const ocean = ctx.createLinearGradient(0,H*0.3,0,H);
+    ocean.addColorStop(0,'#0A4A70');
+    ocean.addColorStop(0.4,'#063850');
+    ocean.addColorStop(1,'#02141E');
+    ctx.fillStyle=ocean; ctx.fillRect(0,H*0.3,W,H*0.7);
+
+    // Linha do horizonte com ondas
+    ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.lineWidth=1.5;
+    ctx.beginPath();
+    for(let x=0;x<W;x+=2){
+      const y=H*0.35+Math.sin(x/60+t)*4+Math.sin(x/25+t*1.3)*2;
+      x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+
+    // Reflexo de luz na água
+    const refl = ctx.createLinearGradient(W*0.5-80,H*0.35,W*0.5+80,H*0.6);
+    refl.addColorStop(0,'rgba(255,255,255,0)');
+    refl.addColorStop(0.5,'rgba(180,220,255,0.08)');
+    refl.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle=refl; ctx.fillRect(W*0.3,H*0.35,W*0.4,H*0.25);
+
+    // Ilha — rochas base
+    const islandX = W*0.5, islandY = H*0.38;
+    // Rocha principal
+    ctx.fillStyle='#2C3E50';
+    ctx.beginPath();
+    ctx.moveTo(islandX-140,islandY+20);
+    ctx.quadraticCurveTo(islandX-160,islandY-30,islandX-80,islandY-60);
+    ctx.quadraticCurveTo(islandX-20,islandY-90,islandX,islandY-85);
+    ctx.quadraticCurveTo(islandX+50,islandY-80,islandX+90,islandY-55);
+    ctx.quadraticCurveTo(islandX+150,islandY-20,islandX+140,islandY+20);
+    ctx.closePath(); ctx.fill();
+
+    // Rocha secundária (atrás)
+    ctx.fillStyle='#1A252F';
+    ctx.beginPath();
+    ctx.moveTo(islandX+80,islandY+10);
+    ctx.quadraticCurveTo(islandX+160,islandY-40,islandX+200,islandY-20);
+    ctx.quadraticCurveTo(islandX+220,islandY,islandX+200,islandY+15);
+    ctx.closePath(); ctx.fill();
+
+    ctx.fillStyle='#243342';
+    ctx.beginPath();
+    ctx.moveTo(islandX-140,islandY+15);
+    ctx.quadraticCurveTo(islandX-200,islandY-20,islandX-180,islandY+15);
+    ctx.closePath(); ctx.fill();
+
+    // Vegetação no topo
+    [[islandX-60,islandY-70,'#1A5C2A'],[islandX,islandY-95,'#1E6B30'],[islandX+50,islandY-65,'#174E24']].forEach(([tx,ty,col])=>{
+      ctx.fillStyle=col;
+      ctx.beginPath();
+      ctx.moveTo(tx,ty-28);
+      ctx.lineTo(tx-22,ty+5);
+      ctx.lineTo(tx+22,ty+5);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle=col;
+      ctx.beginPath();
+      ctx.moveTo(tx,ty-40);
+      ctx.lineTo(tx-14,ty-12);
+      ctx.lineTo(tx+14,ty-12);
+      ctx.closePath(); ctx.fill();
+    });
+
+    // Kosmos-7 encalhado
+    const subX=islandX+30, subY=islandY+5;
+    // Casco
+    ctx.fillStyle='#3D4F5C';
+    ctx.beginPath();
+    ctx.ellipse(subX,subY,80,18,0.2,0,Math.PI*2);
+    ctx.fill();
+    // Highlight do casco
+    ctx.fillStyle='rgba(100,140,160,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(subX+5,subY-5,65,10,0.2,0,Math.PI*2);
+    ctx.fill();
+    // Torre
+    ctx.fillStyle='#2C3E50';
+    ctx.fillRect(subX+10,subY-34,22,22);
+    ctx.fillStyle='#3D4F5C';
+    ctx.fillRect(subX+13,subY-38,16,8);
+    // Periscópio
+    ctx.strokeStyle='#4A6070'; ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(subX+18,subY-38);ctx.lineTo(subX+18,subY-52);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(subX+18,subY-52);ctx.lineTo(subX+28,subY-52);ctx.stroke();
+    // Luz de emergência piscando
+    ctx.fillStyle=`rgba(255,80,60,${0.5+Math.sin(t*3)*0.5})`;
+    ctx.beginPath();ctx.arc(subX+20,subY-36,3,0,Math.PI*2);ctx.fill();
+    // Danos no casco
+    ctx.strokeStyle='rgba(0,0,0,0.4)'; ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(subX-40,subY-5);ctx.lineTo(subX-25,subY+5);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(subX+50,subY-8);ctx.lineTo(subX+60,subY+2);ctx.stroke();
+
+    // Corais ao redor da ilha (parte submersa)
+    const coralPositions=[{x:islandX-130,col:'#E74C3C'},{x:islandX-90,col:'#8E44AD'},{x:islandX+100,col:'#16A085'},{x:islandX+140,col:'#E67E22'}];
+    coralPositions.forEach(cp=>{
+      const cy=islandY+22;
+      ctx.fillStyle=cp.col;
+      ctx.beginPath();
+      ctx.moveTo(cp.x,cy);
+      ctx.quadraticCurveTo(cp.x+Math.sin(t*0.4)*4,cy-30,cp.x,cy-40);
+      ctx.quadraticCurveTo(cp.x-6,cy-38,cp.x-8,cy-25);
+      ctx.quadraticCurveTo(cp.x-4,cy-15,cp.x,cy);
+      ctx.fill();
+      ctx.fillStyle=cp.col+'88';
+      ctx.beginPath();ctx.ellipse(cp.x,cy-38,12,6,0,0,Math.PI*2);ctx.fill();
+    });
+
+    // Reflexo do sub na água
+    ctx.save();
+    ctx.globalAlpha=0.1;
+    ctx.scale(1,-1);
+    ctx.translate(0,-H*0.74);
+    ctx.fillStyle='#3D4F5C';
+    ctx.beginPath();
+    ctx.ellipse(subX,subY,80,18,0.2,0,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+
+    // Label
+    ctx.fillStyle='rgba(214,242,245,0.8)'; ctx.font='bold 12px sans-serif';
+    ctx.fillText('Ilha de Spawn — Kosmos-7 encalhado', 12, 24);
+    ctx.fillStyle='rgba(26,171,189,0.7)'; ctx.font='10px sans-serif';
+    ctx.fillText('Jogador nasce dentro do submarino e sai pela escotilha', 12, 40);
+  }
+
+  function loop(t){ drawIsland(t); requestAnimationFrame(()=>loop(t+0.016)); }
+  loop(0);
+};
+
+// ── Z1 AMBIENTE COMPLETO ────────────────────────────────────
+drawFns.z1 = function() {
+  const c = document.getElementById('c-z1');
+  const ctx = c.getContext('2d');
+  const W = c.width = 700, H = 380;
+
+  const corals=[
+    {x:60,h:110,col:'#E74C3C',col2:'#FF7675',type:'tall'},
+    {x:110,h:80,col:'#8E44AD',col2:'#C39BD3',type:'fan'},
+    {x:165,h:95,col:'#E67E22',col2:'#FAD7A0',type:'tube'},
+    {x:220,h:130,col:'#E91E63',col2:'#F48FB1',type:'tall'},
+    {x:270,h:65,col:'#9B59B6',col2:'#D7BDE2',type:'sphere'},
+    {x:330,h:100,col:'#E74C3C',col2:'#FADBD8',type:'tube'},
+    {x:390,h:90,col:'#16A085',col2:'#76D7C4',type:'fan'},
+    {x:445,h:120,col:'#E67E22',col2:'#FAD7A0',type:'tall'},
+    {x:500,h:70,col:'#E74C3C',col2:'#FF7675',type:'sphere'},
+    {x:555,h:105,col:'#8E44AD',col2:'#C39BD3',type:'tall'},
+    {x:610,h:85,col:'#E91E63',col2:'#F48FB1',type:'fan'},
+    {x:665,h:95,col:'#16A085',col2:'#76D7C4',type:'tube'},
+  ];
+
+  function loop(t) {
+    ctx.clearRect(0,0,W,H);
+
+    // Fundo água Z1
+    const bg = ctx.createLinearGradient(0,0,0,H);
+    bg.addColorStop(0,'#0D5C8A');
+    bg.addColorStop(0.5,'#084570');
+    bg.addColorStop(1,'#052A48');
+    ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+
+    // Raios de sol
+    for(let i=0;i<7;i++){
+      const rx=100+i*80+Math.sin(t*0.3+i)*20;
+      const rg=ctx.createLinearGradient(rx,0,rx+Math.tan(0.2)*H,H);
+      rg.addColorStop(0,'rgba(220,240,255,0.12)');
+      rg.addColorStop(0.6,'rgba(180,220,255,0.04)');
+      rg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=rg;
+      ctx.beginPath();ctx.moveTo(rx,0);ctx.lineTo(rx+18,0);
+      ctx.lineTo(rx+18+Math.tan(0.2)*H,H);ctx.lineTo(rx+Math.tan(0.2)*H,H);
+      ctx.closePath();ctx.fill();
+    }
+
+    // Partículas
+    for(let i=0;i<25;i++){
+      const px=((i*137+t*8)%W);
+      const py=((i*97+t*(2+i%4)*2)%(H*0.85));
+      ctx.fillStyle=`rgba(200,235,255,${0.08+Math.sin(t+i)*0.04})`;
+      ctx.beginPath();ctx.arc(px,py,0.7+Math.sin(i)*0.3,0,Math.PI*2);ctx.fill();
+    }
+
+    // Algas (fundo)
+    [85,180,290,380,490,570,640].forEach((ax,i)=>{
+      const phase=i*0.8;
+      const sway=Math.sin(t*0.5+phase)*8;
+      const sh=80+i%3*20;
+      const sandY=H*0.72;
+      ctx.strokeStyle=`rgba(46,160,67,${0.7+Math.sin(i)*0.15})`; ctx.lineWidth=3; ctx.lineCap='round';
+      ctx.beginPath();
+      ctx.moveTo(ax,sandY);
+      ctx.bezierCurveTo(ax+sway*0.3,sandY-sh*0.3,ax+sway*0.7,sandY-sh*0.65,ax+sway,sandY-sh);
+      ctx.stroke();
+      for(let j=1;j<=2;j++){
+        const fy=sandY-sh*j*0.45;
+        const fx=ax+sway*j*0.45;
+        ctx.fillStyle='rgba(46,160,67,0.65)';
+        ctx.beginPath();ctx.ellipse(fx+9,fy-4,11,4,Math.PI/4,0,Math.PI*2);ctx.fill();
+        ctx.beginPath();ctx.ellipse(fx-9,fy-7,11,4,-Math.PI/4,0,Math.PI*2);ctx.fill();
+      }
+    });
+
+    // Corais
+    corals.forEach(cr=>{
+      const sandY=H*0.72;
+      const base=sandY-4;
+      const sway=Math.sin(t*0.4+cr.x*0.02)*4;
+      ctx.fillStyle=cr.col;
+      if(cr.type==='tall'){
+        ctx.beginPath();
+        ctx.moveTo(cr.x-6,base);
+        ctx.quadraticCurveTo(cr.x+sway*0.4,base-cr.h*0.5,cr.x+sway-4,base-cr.h);
+        ctx.quadraticCurveTo(cr.x+sway+4,base-cr.h,cr.x+sway+4,base-cr.h);
+        ctx.quadraticCurveTo(cr.x+sway*0.4+6,base-cr.h*0.5,cr.x+6,base);
+        ctx.closePath();ctx.fill();
+        ctx.fillStyle=cr.col2;
+        [[sway-10,base-cr.h*0.65,-25],[sway+10,base-cr.h*0.75,25],[sway,base-cr.h,0]].forEach(([bx,by,a])=>{
+          ctx.save();ctx.translate(cr.x+bx,by);ctx.rotate(a*Math.PI/180);
+          ctx.beginPath();ctx.ellipse(0,0,14,6,0,0,Math.PI*2);ctx.fill();ctx.restore();
+        });
+      } else if(cr.type==='fan'){
+        ctx.lineWidth=3;ctx.strokeStyle=cr.col;
+        ctx.beginPath();ctx.moveTo(cr.x,base);ctx.lineTo(cr.x+sway,base-cr.h);ctx.stroke();
+        ctx.fillStyle=cr.col+'66';
+        ctx.beginPath();ctx.moveTo(cr.x+sway,base-cr.h);
+        ctx.ellipse(cr.x+sway,base-cr.h,cr.h*0.45,cr.h*0.38,0,0,Math.PI,true);ctx.fill();
+        ctx.strokeStyle=cr.col;ctx.lineWidth=0.8;
+        for(let i=0;i<6;i++){
+          const a=-Math.PI+i*Math.PI/5;
+          ctx.beginPath();ctx.moveTo(cr.x+sway,base-cr.h);
+          ctx.lineTo(cr.x+sway+Math.cos(a)*cr.h*0.45,base-cr.h+Math.sin(a)*cr.h*0.38);ctx.stroke();
+        }
+      } else if(cr.type==='tube'){
+        for(let i=0;i<4;i++){
+          const tx=cr.x+(i-1.5)*10+Math.sin(t*0.3+i)*2;
+          const th=cr.h*(0.6+i*0.1);
+          ctx.fillStyle=i%2===0?cr.col:cr.col2;
+          ctx.beginPath();ctx.moveTo(tx-5,base);ctx.lineTo(tx-4,base-th);
+          ctx.lineTo(tx+4,base-th);ctx.lineTo(tx+5,base);ctx.closePath();ctx.fill();
+          ctx.fillStyle=cr.col2;ctx.beginPath();ctx.ellipse(tx,base-th,5,3,0,0,Math.PI*2);ctx.fill();
+        }
+      } else if(cr.type==='sphere'){
+        ctx.lineWidth=3;ctx.strokeStyle=cr.col;
+        ctx.beginPath();ctx.moveTo(cr.x,base);ctx.lineTo(cr.x+sway,base-cr.h*0.6);ctx.stroke();
+        ctx.fillStyle=cr.col;ctx.beginPath();ctx.arc(cr.x+sway,base-cr.h,cr.h*0.26,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle=cr.col2;ctx.beginPath();ctx.arc(cr.x+sway-cr.h*0.08,base-cr.h+cr.h*0.04,cr.h*0.15,0,Math.PI*2);ctx.fill();
+      }
+    });
+
+    // Areia
+    const sandY=H*0.72;
+    const sg=ctx.createLinearGradient(0,sandY,0,H);
+    sg.addColorStop(0,'#B8963E');sg.addColorStop(0.3,'#C9A84C');sg.addColorStop(1,'#8B6914');
+    ctx.fillStyle=sg;
+    ctx.beginPath();ctx.moveTo(0,sandY);
+    for(let x=0;x<=W;x+=4){
+      ctx.lineTo(x,sandY+Math.sin(x/40+t*0.2)*4+Math.sin(x/18+t*0.3)*2);
+    }
+    ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fill();
+
+    // Ripples na areia
+    ctx.strokeStyle='rgba(100,70,0,0.18)';ctx.lineWidth=1;
+    for(let x=30;x<W;x+=45){
+      ctx.beginPath();ctx.ellipse(x,sandY+14,18,4,0,0,Math.PI*2);ctx.stroke();
+    }
+
+    // Pedras
+    [50,200,360,520,660].forEach(px=>{
+      ctx.fillStyle='rgba(90,75,45,0.75)';
+      ctx.beginPath();ctx.ellipse(px,sandY+8,14,7,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(120,100,65,0.5)';
+      ctx.beginPath();ctx.ellipse(px-4,sandY+5,7,4,Math.PI/6,0,Math.PI*2);ctx.fill();
+    });
+
+    // Cardume de peixe
+    const schoolX=((t*40)%900)-100;
+    for(let i=0;i<12;i++){
+      const fx=schoolX+Math.sin(i*0.8+t)*15+i*18;
+      const fy=H*0.28+Math.sin(i*1.2+t*0.8)*20+i*3;
+      const s=0.8+Math.sin(i)*0.2;
+      ctx.fillStyle='rgba(74,144,217,0.8)';
+      ctx.beginPath();ctx.ellipse(fx,fy,10*s,4*s,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(46,111,173,0.85)';
+      ctx.beginPath();ctx.moveTo(fx-9*s,fy);ctx.lineTo(fx-16*s,-4*s+fy);ctx.lineTo(fx-16*s,4*s+fy);ctx.closePath();ctx.fill();
+    }
+
+    // Tartaruga
+    const tx2=((t*15)%900)-80;
+    const ty2=H*0.42;
+    ctx.fillStyle='#2D6A4F';
+    ctx.beginPath();ctx.ellipse(tx2,ty2,24,15,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#40916C';ctx.beginPath();ctx.ellipse(tx2-2,ty2-3,18,10,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#52B788';ctx.beginPath();ctx.ellipse(tx2+27,ty2-2,9,7,0.3,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#1A1A2E';ctx.beginPath();ctx.arc(tx2+33,ty2-4,3,0,Math.PI*2);ctx.fill();
+    [[-20,4],[20,4]].forEach(([ox,oy])=>{
+      ctx.fillStyle='#2D6A4F';ctx.beginPath();ctx.ellipse(tx2+ox,ty2+oy,14,6,0,0,Math.PI*2);ctx.fill();
+    });
+
+    // Água-viva
+    [160,480].forEach((jx,ji)=>{
+      const jy=H*0.2+Math.sin(t*0.4+ji*2)*18;
+      const pulse=1+Math.sin(t*1.2+ji)*0.1;
+      ctx.fillStyle='rgba(20,40,90,0.7)';
+      ctx.beginPath();ctx.ellipse(jx,jy,36*pulse,24*pulse,0,-Math.PI,0);ctx.fill();
+      ctx.strokeStyle='rgba(96,165,250,0.6)';ctx.lineWidth=0.8;
+      for(let i=0;i<5;i++){
+        const a=-Math.PI+i*Math.PI/4;
+        ctx.beginPath();ctx.moveTo(jx,jy);ctx.lineTo(jx+Math.cos(a)*34*pulse,jy+Math.sin(a)*22*pulse);ctx.stroke();
+      }
+      ctx.strokeStyle='rgba(147,197,253,0.5)';ctx.lineWidth=1.2;
+      ctx.beginPath();ctx.ellipse(jx,jy,36*pulse,24*pulse,0,-Math.PI,0);ctx.stroke();
+      [[-15,0],[0,5],[15,0],[8,-6],[-8,-6]].forEach(([tx,ty])=>{
+        ctx.strokeStyle='rgba(59,130,246,0.5)';ctx.lineWidth=1.2;
+        ctx.beginPath();ctx.moveTo(jx+tx*pulse,jy);
+        ctx.bezierCurveTo(jx+tx*pulse,jy+50,jx+tx*pulse+5,jy+90,jx+tx*pulse+tx*0.3,jy+105);
+        ctx.stroke();
+      });
+    });
+
+    // Tubarão
+    const sx=((t*35+600)%1000)-200;
+    const sy=H*0.48;
+    ctx.fillStyle='rgba(55,65,81,0.9)';
+    ctx.beginPath();ctx.ellipse(sx,sy,70,22,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(200,195,185,0.4)';
+    ctx.beginPath();ctx.ellipse(sx+10,sy+5,58,14,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(55,65,81,0.88)';
+    ctx.beginPath();ctx.moveTo(sx+70,sy);ctx.lineTo(sx+95,sy-15);ctx.lineTo(sx+95,sy+15);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(sx+5,sy-22);ctx.lineTo(sx-6,sy-34);ctx.lineTo(sx-16,sy-22);ctx.closePath();ctx.fill();
+    ctx.fillStyle='rgba(55,65,81,0.85)';
+    ctx.beginPath();ctx.ellipse(sx-38,sy,22,15,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#0A0A1A';ctx.beginPath();ctx.arc(sx-62,sy-5,6,0,Math.PI*2);ctx.fill();
+
+    // Label
+    ctx.fillStyle='rgba(214,242,245,0.8)';ctx.font='bold 12px sans-serif';
+    ctx.fillText('Zona 1 — Baía de Coral  |  0–50m',12,24);
+
+    requestAnimationFrame(()=>loop(t+0.016));
+  }
+  loop(0);
+};
+
+// ── Z2 KELP ─────────────────────────────────────────────────
+drawFns.z2 = function() {
+  const c = document.getElementById('c-z2');
+  const ctx = c.getContext('2d');
+  const W = c.width = 700, H = 380;
+
+  function loop(t) {
+    ctx.clearRect(0,0,W,H);
+
+    // Fundo Z2 — mais escuro
+    const bg=ctx.createLinearGradient(0,0,0,H);
+    bg.addColorStop(0,'#082840');
+    bg.addColorStop(0.5,'#051A2C');
+    bg.addColorStop(1,'#020B14');
+    ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+
+    // Luz filtrada vindo de cima
+    const lightRad=ctx.createRadialGradient(W/2,0,20,W/2,0,H*0.6);
+    lightRad.addColorStop(0,'rgba(0,80,140,0.25)');
+    lightRad.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=lightRad;ctx.fillRect(0,0,W,H);
+
+    // Kelp
+    for(let k=0;k<12;k++){
+      const kx=40+k*55+Math.sin(k)*20;
+      const kh=H*0.85+Math.sin(k*0.7)*30;
+      const ksway=Math.sin(t*0.35+k*0.6)*18;
+      const kColor=k%2===0?'rgba(22,90,52,0.9)':'rgba(15,70,40,0.8)';
+      ctx.strokeStyle=kColor;ctx.lineWidth=6+k%3*2;ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(kx,H);
+      ctx.bezierCurveTo(kx+ksway*0.2,H-kh*0.25,kx+ksway*0.6,H-kh*0.6,kx+ksway,H-kh);
+      ctx.stroke();
+      // Folhas de kelp
+      for(let f=1;f<=4;f++){
+        const fy=H-kh*f*0.22;
+        const fx=kx+ksway*f*0.22;
+        const leafSway=ksway*0.3;
+        ctx.fillStyle=`rgba(22,${90+f*8},52,0.75)`;
+        ctx.beginPath();
+        ctx.moveTo(fx,fy);
+        ctx.bezierCurveTo(fx+leafSway+28,fy-14,fx+leafSway+40,fy-5,fx+leafSway+30,fy+8);
+        ctx.closePath();ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(fx,fy);
+        ctx.bezierCurveTo(fx-leafSway-28,fy-14,fx-leafSway-40,fy-5,fx-leafSway-30,fy+8);
+        ctx.closePath();ctx.fill();
+      }
+    }
+
+    // Partículas bioluminescentes suaves
+    for(let i=0;i<20;i++){
+      const px=((i*173+t*6)%W);
+      const py=((i*113+t*(1+i%3)*(1.5))%(H*0.9));
+      ctx.fillStyle=`rgba(0,180,255,${0.06+Math.sin(t*0.8+i)*0.04})`;
+      ctx.beginPath();ctx.arc(px,py,1.2,0,Math.PI*2);ctx.fill();
+    }
+
+    // Corais bioluminescentes Z2
+    [80,220,380,550,660].forEach((cx,ci)=>{
+      const sandY=H*0.82;
+      const ch=50+ci%3*20;
+      const csway=Math.sin(t*0.4+ci)*4;
+      ctx.fillStyle='rgba(15,50,100,0.9)';
+      ctx.beginPath();
+      ctx.moveTo(cx-5,sandY);
+      ctx.quadraticCurveTo(cx+csway,sandY-ch*0.5,cx+csway,sandY-ch);
+      ctx.quadraticCurveTo(cx+csway+5,sandY-ch,cx+5,sandY);ctx.closePath();ctx.fill();
+      // Emissive nas pontas
+      const glow=ctx.createRadialGradient(cx+csway,sandY-ch,2,cx+csway,sandY-ch,15);
+      glow.addColorStop(0,'rgba(0,180,255,0.4)');
+      glow.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=glow;ctx.beginPath();ctx.arc(cx+csway,sandY-ch,15,0,Math.PI*2);ctx.fill();
+    });
+
+    // Areia Z2 mais escura
+    const sandYZ2=H*0.82;
+    const sg2=ctx.createLinearGradient(0,sandYZ2,0,H);
+    sg2.addColorStop(0,'#5A4A20');sg2.addColorStop(1,'#2A1F08');
+    ctx.fillStyle=sg2;
+    ctx.beginPath();ctx.moveTo(0,sandYZ2);
+    for(let x=0;x<=W;x+=4) ctx.lineTo(x,sandYZ2+Math.sin(x/35+t*0.15)*3+Math.sin(x/15+t*0.25)*1.5);
+    ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fill();
+
+    // Boto
+    const bx=((t*20)%900)-100;
+    const by=H*0.32+Math.sin(t*0.5)*18;
+    ctx.fillStyle='rgba(44,95,138,0.9)';
+    ctx.beginPath();ctx.ellipse(bx,by,55,18,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(208,232,245,0.35)';
+    ctx.beginPath();ctx.ellipse(bx+5,by+4,45,10,0,0,Math.PI*2);ctx.fill();
+    // Nadadeira
+    ctx.fillStyle='rgba(30,64,92,0.9)';
+    ctx.beginPath();ctx.moveTo(bx+5,by-18);ctx.lineTo(bx-5,by-30);ctx.lineTo(bx-15,by-18);ctx.closePath();ctx.fill();
+    // Cauda
+    ctx.beginPath();ctx.moveTo(bx+55,by);ctx.lineTo(bx+75,by-12);ctx.lineTo(bx+75,by+12);ctx.closePath();ctx.fill();
+    // Focinho sorrindo
+    ctx.fillStyle='rgba(58,122,176,0.9)';
+    ctx.beginPath();ctx.ellipse(bx-48,by-2,20,12,0.3,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#0A0A1A';ctx.beginPath();ctx.arc(bx-62,by-5,4,0,Math.PI*2);ctx.fill();
+    // Bioluminescência
+    ctx.strokeStyle='rgba(72,209,204,0.4)';ctx.lineWidth=1;
+    [0,15,30].forEach(ox=>{
+      ctx.beginPath();ctx.moveTo(bx-25+ox,by-12);ctx.lineTo(bx-20+ox,by+8);ctx.stroke();
+    });
+
+    // Tubarão Caçador
+    const skx=((t*30+400)%1100)-200;
+    const sky2=H*0.52;
+    ctx.fillStyle='rgba(40,50,65,0.92)';
+    ctx.beginPath();ctx.ellipse(skx,sky2,75,24,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(190,185,175,0.38)';
+    ctx.beginPath();ctx.ellipse(skx+10,sky2+6,62,15,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(40,50,65,0.9)';
+    ctx.beginPath();ctx.moveTo(skx+75,sky2);ctx.lineTo(skx+100,sky2-16);ctx.lineTo(skx+100,sky2+16);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(skx+8,sky2-24);ctx.lineTo(skx-4,sky2-36);ctx.lineTo(skx-16,sky2-24);ctx.closePath();ctx.fill();
+    ctx.fillStyle='rgba(40,50,65,0.88)';
+    ctx.beginPath();ctx.ellipse(skx-40,sky2,24,16,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#05050F';ctx.beginPath();ctx.arc(skx-65,sky2-6,7,0,Math.PI*2);ctx.fill();
+
+    ctx.fillStyle='rgba(214,242,245,0.8)';ctx.font='bold 12px sans-serif';
+    ctx.fillText('Zona 2 — Floresta de Kelp  |  50–200m',12,24);
+    ctx.fillStyle='rgba(26,171,189,0.7)';ctx.font='10px sans-serif';
+    ctx.fillText('Traje de Pressão T1 necessário · Visibilidade reduzida',12,40);
+
+    requestAnimationFrame(()=>loop(t+0.016));
+  }
+  loop(0);
+};
+
+// ── Z3 ───────────────────────────────────────────────────────
+drawFns.z3 = function() {
+  const c = document.getElementById('c-z3');
+  const ctx = c.getContext('2d');
+  const W = c.width = 700, H = 380;
+
+  function loop(t) {
+    ctx.clearRect(0,0,W,H);
+
+    // Fundo Z3 — quase preto
+    const bg=ctx.createLinearGradient(0,0,0,H);
+    bg.addColorStop(0,'#030D18');
+    bg.addColorStop(1,'#010508');
+    ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+
+    // Neve marinha
+    for(let i=0;i<40;i++){
+      const sx=((i*173)%W);
+      const sy=((i*97+t*(0.5+i%5*0.3))%H);
+      ctx.fillStyle=`rgba(200,230,255,${0.05+Math.sin(i)*0.03})`;
+      ctx.beginPath();ctx.arc(sx,sy,0.6+Math.sin(i*1.3)*0.3,0,Math.PI*2);ctx.fill();
+    }
+
+    // Fissuras bioluminescentes
+    [[120,H*0.75,180],[280,H*0.82,90],[420,H*0.78,140],[560,H*0.72,200],[650,H*0.80,80]].forEach(([fx,fy,fw])=>{
+      const glow=ctx.createRadialGradient(fx,fy,2,fx,fy,fw*0.6);
+      glow.addColorStop(0,'rgba(0,255,100,0.18)');
+      glow.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=glow;ctx.fillRect(fx-fw*0.6,fy-fw*0.3,fw*1.2,fw*0.6);
+      ctx.strokeStyle=`rgba(0,255,120,${0.6+Math.sin(t*0.8+fx)*0.2})`;
+      ctx.lineWidth=2+Math.sin(t+fx)*0.5;
+      ctx.lineCap='round';
+      ctx.beginPath();
+      ctx.moveTo(fx-fw*0.4,fy);
+      ctx.lineTo(fx-fw*0.15,fy-8);
+      ctx.lineTo(fx+fw*0.1,fy+4);
+      ctx.lineTo(fx+fw*0.35,fy-5);
+      ctx.stroke();
+    });
+
+    // Chaminé ao fundo
+    ctx.fillStyle='rgba(30,15,5,0.9)';
+    ctx.beginPath();ctx.moveTo(580,H);ctx.lineTo(565,H*0.45);ctx.lineTo(595,H*0.45);ctx.lineTo(610,H);ctx.closePath();ctx.fill();
+    // Fumaça da chaminé
+    for(let i=0;i<8;i++){
+      const cloudY=H*0.45-(i*15)-(t*8%120);
+      const cloudX=580+Math.sin(cloudY*0.05+t*0.2)*20;
+      const alpha=0.12*(1-i/8);
+      ctx.fillStyle=`rgba(200,180,150,${alpha})`;
+      ctx.beginPath();ctx.arc(cloudX,cloudY%H,12+i*4,0,Math.PI*2);ctx.fill();
+    }
+
+    // Rochas
+    [[60,H*0.82],[160,H*0.88],[350,H*0.80],[500,H*0.85],[660,H*0.82]].forEach(([rx,ry])=>{
+      ctx.fillStyle='rgba(15,20,30,0.95)';
+      ctx.beginPath();ctx.ellipse(rx,ry,35,20,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='rgba(25,35,45,0.7)';
+      ctx.beginPath();ctx.ellipse(rx-8,ry-6,18,10,Math.PI/8,0,Math.PI*2);ctx.fill();
+    });
+
+    // Areia Z3
+    const sandYZ3=H*0.86;
+    const sg3=ctx.createLinearGradient(0,sandYZ3,0,H);
+    sg3.addColorStop(0,'#18220E');sg3.addColorStop(1,'#080C05');
+    ctx.fillStyle=sg3;
+    ctx.beginPath();ctx.moveTo(0,sandYZ3);
+    for(let x=0;x<=W;x+=4) ctx.lineTo(x,sandYZ3+Math.sin(x/30+t*0.1)*2);
+    ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fill();
+
+    // Polvo Abissal com luz falsa
+    const ox=W*0.35, oy=H*0.35;
+    ctx.fillStyle='rgba(12,18,38,0.9)';
+    ctx.beginPath();ctx.ellipse(ox,oy,28,22,0,0,Math.PI*2);ctx.fill();
+    // Olhos
+    ctx.fillStyle='rgba(220,180,0,0.9)';ctx.beginPath();ctx.ellipse(ox-10,oy-3,7,9,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(220,180,0,0.9)';ctx.beginPath();ctx.ellipse(ox+10,oy-3,7,9,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#0A0A1A';ctx.beginPath();ctx.ellipse(ox-10,oy-3,4,6,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#0A0A1A';ctx.beginPath();ctx.ellipse(ox+10,oy-3,4,6,0,0,Math.PI*2);ctx.fill();
+    // Tentáculos
+    for(let i=0;i<8;i++){
+      const ta=-Math.PI/2+i*Math.PI/4;
+      const tx=ox+Math.cos(ta)*25+Math.sin(t*0.5+i)*8;
+      const ty=oy+Math.sin(ta)*20+Math.cos(t*0.4+i)*6;
+      ctx.strokeStyle='rgba(10,15,35,0.85)';ctx.lineWidth=5;
+      ctx.beginPath();ctx.moveTo(ox+Math.cos(ta)*18,oy+Math.sin(ta)*14);ctx.lineTo(tx,ty);ctx.stroke();
+    }
+    // Luz falsa (isca bioluminescente)
+    const lureGlow=ctx.createRadialGradient(ox+30,oy-30,2,ox+30,oy-30,25);
+    lureGlow.addColorStop(0,'rgba(0,220,100,0.5)');
+    lureGlow.addColorStop(0.5,'rgba(0,180,80,0.15)');
+    lureGlow.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=lureGlow;ctx.beginPath();ctx.arc(ox+30,oy-30,25,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=`rgba(0,255,120,${0.7+Math.sin(t*2)*0.3})`;
+    ctx.beginPath();ctx.arc(ox+30,oy-30,4,0,Math.PI*2);ctx.fill();
+
+    // Baleia das fendas ao fundo (enorme, passiva)
+    const whaleX=((t*8+200)%1400)-400;
+    const whaleY=H*0.22;
+    ctx.fillStyle='rgba(20,35,55,0.7)';
+    ctx.beginPath();ctx.ellipse(whaleX,whaleY,140,35,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(30,50,75,0.4)';
+    ctx.beginPath();ctx.ellipse(whaleX+20,whaleY-8,115,22,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(20,35,55,0.65)';
+    ctx.beginPath();ctx.moveTo(whaleX+140,whaleY);ctx.lineTo(whaleX+180,whaleY-25);ctx.lineTo(whaleX+180,whaleY+25);ctx.closePath();ctx.fill();
+    ctx.fillStyle='rgba(20,35,55,0.65)';
+    ctx.beginPath();ctx.moveTo(whaleX+30,whaleY-35);ctx.lineTo(whaleX+10,whaleY-55);ctx.lineTo(whaleX-10,whaleY-35);ctx.closePath();ctx.fill();
+
+    ctx.fillStyle='rgba(214,242,245,0.8)';ctx.font='bold 12px sans-serif';
+    ctx.fillText('Zona 3 — Planaltos Abissais  |  200–600m',12,24);
+    ctx.fillStyle='rgba(26,171,189,0.7)';ctx.font='10px sans-serif';
+    ctx.fillText('Escuridão · Bioluminescência · Pressão severa · Traje T2',12,40);
+
+    requestAnimationFrame(()=>loop(t+0.016));
+  }
+  loop(0);
+};
+
+// ── TUBARÃO MELHORADO ────────────────────────────────────────
+drawFns.shark = function() {
+  const c = document.getElementById('c-shark');
+  const ctx = c.getContext('2d');
+  const W = c.width = 700, H = 380;
+
+  function loop(t) {
+    ctx.clearRect(0,0,W,H);
+
+    // Fundo
+    const bg=ctx.createLinearGradient(0,0,0,H);
+    bg.addColorStop(0,'#062030');bg.addColorStop(1,'#020C16');
+    ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+
+    // Partículas
+    for(let i=0;i<15;i++){
+      const px=((i*137+t*5)%W),py=((i*97+t*(1+i%3))%(H));
+      ctx.fillStyle=`rgba(180,220,255,0.05)`;
+      ctx.beginPath();ctx.arc(px,py,0.8,0,Math.PI*2);ctx.fill();
+    }
+
+    const cx=W/2, cy=H/2+10;
+    const swim=Math.sin(t*1.5)*8;
+    const tailSway=Math.sin(t*1.5)*18;
+
+    ctx.save();ctx.translate(cx,cy+swim);
+
+    // Sombra
+    ctx.fillStyle='rgba(0,0,0,0.2)';
+    ctx.beginPath();ctx.ellipse(0,40,115,12,0,0,Math.PI*2);ctx.fill();
+
+    // Cauda
+    ctx.fillStyle='#2C3848';
+    ctx.beginPath();ctx.moveTo(145,tailSway*0.3);ctx.lineTo(185,tailSway-28);ctx.lineTo(185,tailSway+28);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#3A4A5C';
+    ctx.beginPath();ctx.moveTo(145,tailSway*0.3);ctx.lineTo(175,tailSway-16);ctx.lineTo(175,tailSway+16);ctx.closePath();ctx.fill();
+
+    // Corpo principal
+    const bodyGrad=ctx.createLinearGradient(-120,-30,0,60);
+    bodyGrad.addColorStop(0,'#374151');
+    bodyGrad.addColorStop(0.3,'#3D4F65');
+    bodyGrad.addColorStop(1,'#2C3848');
+    ctx.fillStyle=bodyGrad;
+    ctx.beginPath();
+    ctx.moveTo(-120,0);
+    ctx.bezierCurveTo(-80,-28,60,-32,145,tailSway*0.3);
+    ctx.bezierCurveTo(60,0,60,0,145,tailSway*0.3);
+    ctx.bezierCurveTo(60,32,-80,28,-120,0);
+    ctx.closePath();ctx.fill();
+
+    // Ventre
+    ctx.fillStyle='rgba(205,200,188,0.45)';
+    ctx.beginPath();
+    ctx.moveTo(-100,8);
+    ctx.bezierCurveTo(-60,28,60,32,130,tailSway*0.35);
+    ctx.bezierCurveTo(60,18,-60,16,-100,8);ctx.closePath();ctx.fill();
+
+    // Linha lateral
+    ctx.strokeStyle='rgba(80,100,120,0.4)';ctx.lineWidth=1.5;ctx.setLineDash([4,6]);
+    ctx.beginPath();ctx.moveTo(-90,0);ctx.lineTo(120,tailSway*0.15);ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Fendas branquiais
+    ctx.strokeStyle='rgba(20,30,45,0.8)';ctx.lineWidth=2;ctx.lineCap='round';
+    [-75,-62,-50,-39,-29].forEach((gx,i)=>{
+      ctx.beginPath();ctx.moveTo(gx,-14+i*2);ctx.lineTo(gx+5,14-i*2);ctx.stroke();
+    });
+
+    // Nadadeira dorsal
+    const bodyGrad2=ctx.createLinearGradient(-10,-50,20,-10);
+    bodyGrad2.addColorStop(0,'#1F2937');bodyGrad2.addColorStop(1,'#374151');
+    ctx.fillStyle=bodyGrad2;
+    ctx.beginPath();
+    ctx.moveTo(-10,-30);ctx.lineTo(-30,-75);ctx.lineTo(20,-30);ctx.closePath();ctx.fill();
+    ctx.fillStyle='rgba(50,70,90,0.4)';
+    ctx.beginPath();ctx.moveTo(-10,-30);ctx.lineTo(-24,-65);ctx.lineTo(12,-30);ctx.closePath();ctx.fill();
+
+    // Nadadeiras peitorais
+    ctx.fillStyle='#2C3848';
+    ctx.beginPath();ctx.moveTo(-40,8);ctx.lineTo(-80,55);ctx.lineTo(-10,35);ctx.closePath();ctx.fill();
+    ctx.fillStyle='rgba(50,70,90,0.35)';
+    ctx.beginPath();ctx.moveTo(-40,8);ctx.lineTo(-72,48);ctx.lineTo(-10,35);ctx.closePath();ctx.fill();
+
+    // Nadadeira pélvica
+    ctx.fillStyle='#2C3848';
+    ctx.beginPath();ctx.moveTo(60,20);ctx.lineTo(90,48);ctx.lineTo(80,20);ctx.closePath();ctx.fill();
+
+    // Focinho — mandíbula grande
+    ctx.fillStyle='#374151';
+    ctx.beginPath();ctx.ellipse(-115,0,22,15,0,0,Math.PI*2);ctx.fill();
+
+    // Boca
+    ctx.fillStyle='#1A1A2E';
+    ctx.beginPath();ctx.moveTo(-120,4);ctx.quadraticCurveTo(-108,18,-90,8);ctx.lineTo(-90,4);ctx.lineTo(-120,4);ctx.closePath();ctx.fill();
+
+    // Dentes
+    ctx.fillStyle='rgba(240,240,230,0.9)';
+    [-115,-108,-101].forEach((tx,i)=>{
+      ctx.beginPath();ctx.moveTo(tx,4);ctx.lineTo(tx-3,14);ctx.lineTo(tx+3,14);ctx.closePath();ctx.fill();
+    });
+
+    // Olho — sem íris, terror
+    ctx.fillStyle='#050508';
+    ctx.beginPath();ctx.arc(-103,-6,9,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.06)';
+    ctx.beginPath();ctx.arc(-106,-9,3,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='rgba(80,80,100,0.3)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(-103,-6,9,0,Math.PI*2);ctx.stroke();
+
+    ctx.restore();
+
+    // Labels técnicos
+    ctx.fillStyle='rgba(214,242,245,0.8)';ctx.font='bold 12px sans-serif';
+    ctx.fillText('Tubarão Caçador — Referência visual para Blender MCP',12,24);
+    ctx.fillStyle='rgba(26,171,189,0.7)';ctx.font='10px sans-serif';
+    ctx.fillText('HP:150  Vel:28  Dano:25  Zona 2  |  Mandíbula 30% maior que real',12,40);
+
+    // Anotações
+    const notes=[
+      {x:cx+70,y:cy-60+swim,txt:'Nadadeira dorsal — aresta 0.8 no Bevel'},
+      {x:cx-140,y:cy+50+swim,txt:'Nadadeira peitoral — 3 bones'},
+      {x:cx+120,y:cy+30+swim+tailSway*0.3,txt:'Cauda assimétrica'},
+      {x:cx-200,y:cy-10+swim,txt:'Olho sem íris — preto total'},
+      {x:cx-210,y:cy+15+swim,txt:'Mandíbula 30% maior'},
+      {x:cx-50,y:cy-50+swim,txt:'Linha lateral — detalhe de normal map'},
+    ];
+    notes.forEach(n=>{
+      ctx.fillStyle='rgba(26,171,189,0.6)';ctx.font='9px sans-serif';
+      ctx.fillText(n.txt,n.x,n.y);
+    });
+
+    requestAnimationFrame(()=>loop(t+0.016));
+  }
+  loop(0);
+};
+
+// ── MESA DE CRAFT ────────────────────────────────────────────
+drawFns.craft = function() {
+  const c = document.getElementById('c-craft');
+  const ctx = c.getContext('2d');
+  const W = c.width = 700, H = 380;
+
+  const recipes=[
+    {name:'Faca de Coleta',icon:'⚒',can:true,time:'3s'},
+    {name:'Lanterna Básica',icon:'🔦',can:true,time:'4s'},
+    {name:'Kit Médico',icon:'🩹',can:true,time:'2s'},
+    {name:'Baú de Madeira',icon:'📦',can:false,time:'6s'},
+    {name:'Módulo de O₂',icon:'💨',can:false,time:'10s'},
+    {name:'Tanque O₂ Médio',icon:'🫧',can:false,time:'8s'},
+  ];
+  const selected=1;
+  const ingredients=[
+    {name:'Sucata',have:3,need:3,ok:true},
+    {name:'Esporo Bio.',have:1,need:1,ok:true},
+  ];
+
+  function loop(t) {
+    ctx.clearRect(0,0,W,H);
+
+    // Fundo menu
+    ctx.fillStyle='#030D18';ctx.fillRect(0,0,W,H);
+
+    // Scanlines sutis
+    for(let y=0;y<H;y+=3){
+      ctx.fillStyle='rgba(0,0,0,0.1)';ctx.fillRect(0,y,W,1);
+    }
+
+    // Sidebar esquerda
+    const sideW=175;
+    ctx.fillStyle='rgba(6,43,58,0.9)';
+    ctx.beginPath();roundRect(ctx,0,0,sideW,H,0);ctx.fill();
+    ctx.strokeStyle='rgba(11,122,138,0.35)';ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.moveTo(sideW,0);ctx.lineTo(sideW,H);ctx.stroke();
+
+    // Header sidebar
+    ctx.fillStyle='rgba(11,122,138,0.15)';ctx.fillRect(0,0,sideW,44);
+    ctx.strokeStyle='rgba(11,122,138,0.3)';ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.moveTo(0,44);ctx.lineTo(sideW,44);ctx.stroke();
+    ctx.fillStyle='rgba(214,242,245,0.9)';ctx.font='bold 13px sans-serif';
+    ctx.fillText('Fabricação',14,28);
+
+    // Tabs de tier
+    ['Tier 0','Tier 1','Tier 2'].forEach((tab,i)=>{
+      const ty=52+i*32;
+      if(i===0){
+        ctx.fillStyle='rgba(11,122,138,0.2)';
+        ctx.beginPath();roundRect(ctx,6,ty,sideW-12,26,5);ctx.fill();
+        ctx.strokeStyle='rgba(11,122,138,0.5)';ctx.lineWidth=0.5;
+        ctx.beginPath();roundRect(ctx,6,ty,sideW-12,26,5);ctx.stroke();
+        ctx.fillStyle='rgba(26,171,189,0.9)';
+      } else {
+        ctx.fillStyle=i===2?'rgba(255,255,255,0.1)':'rgba(255,255,255,0)';
+        ctx.fillStyle='rgba(214,242,245,0.4)';
+      }
+      ctx.font=i===0?'bold 11px sans-serif':'11px sans-serif';
+      ctx.fillText(tab,14,ty+17);
+      if(i===2){
+        ctx.fillStyle='rgba(255,255,255,0.2)';ctx.font='9px sans-serif';
+        ctx.fillText('🔒',sideW-20,ty+17);
+      }
+    });
+
+    // Lista de receitas
+    const listY=154;
+    recipes.forEach((r,i)=>{
+      const ry=listY+i*34;
+      const isSelected=i===selected;
+      if(isSelected){
+        ctx.fillStyle='rgba(11,122,138,0.2)';
+        ctx.beginPath();roundRect(ctx,6,ry,sideW-12,30,5);ctx.fill();
+        ctx.strokeStyle='rgba(11,122,138,0.5)';ctx.lineWidth=0.5;
+        ctx.beginPath();roundRect(ctx,6,ry,sideW-12,30,5);ctx.stroke();
+      }
+      ctx.font='15px sans-serif';ctx.fillText(r.icon,14,ry+21);
+      ctx.fillStyle=isSelected?'rgba(214,242,245,0.95)':'rgba(214,242,245,0.55)';
+      ctx.font=isSelected?'bold 11px sans-serif':'11px sans-serif';
+      ctx.fillText(r.name,36,ry+21);
+      // Dot de status
+      ctx.fillStyle=r.can?'#1D9E75':'rgba(80,80,90,0.5)';
+      ctx.beginPath();ctx.arc(sideW-16,ry+15,4,0,Math.PI*2);ctx.fill();
+    });
+
+    // Bancada info
+    ctx.fillStyle='rgba(11,122,138,0.1)';ctx.fillRect(0,H-48,sideW,48);
+    ctx.strokeStyle='rgba(11,122,138,0.2)';ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.moveTo(0,H-48);ctx.lineTo(sideW,H-48);ctx.stroke();
+    ctx.fillStyle='rgba(26,171,189,0.6)';ctx.font='9px sans-serif';
+    ctx.fillText('BANCADA',14,H-32);
+    ctx.fillStyle='rgba(29,158,117,0.9)';ctx.font='11px sans-serif';
+    ctx.fillText('Mesa de Trabalho ✓',14,H-16);
+
+    // Área central — detalhe do item
+    const detailX=sideW+16, detailW=W-sideW-16-180;
+
+    // Ícone grande do item
+    ctx.fillStyle='rgba(11,122,138,0.12)';
+    ctx.strokeStyle='rgba(11,122,138,0.4)';ctx.lineWidth=0.5;
+    ctx.beginPath();roundRect(ctx,detailX,16,70,70,8);ctx.fill();ctx.stroke();
+    ctx.font='36px sans-serif';ctx.fillText('🔦',detailX+17,72);
+
+    // Nome e tipo
+    ctx.fillStyle='rgba(214,242,245,0.95)';ctx.font='bold 16px sans-serif';
+    ctx.fillText('Lanterna Básica',detailX+82,44);
+    ctx.fillStyle='rgba(26,171,189,0.8)';ctx.font='11px sans-serif';
+    ctx.fillText('Ferramenta  ·  Tier 0',detailX+82,62);
+    ctx.fillStyle='rgba(41,128,185,0.6)';ctx.font='9px sans-serif';
+    ctx.fillText('Incomum',detailX+82,80);
+
+    // Descrição
+    ctx.fillStyle='rgba(214,242,245,0.5)';ctx.font='10px sans-serif';
+    ctx.fillText('Ilumina 15m à frente. Essencial na Zona 3 e mais fundo.',detailX,106);
+    ctx.fillText('Craftar e equipar no slot de ferramenta.',detailX,120);
+
+    // Separador
+    ctx.strokeStyle='rgba(11,122,138,0.2)';ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.moveTo(detailX,135);ctx.lineTo(detailX+detailW,135);ctx.stroke();
+
+    // Ingredientes
+    ctx.fillStyle='rgba(26,171,189,0.6)';ctx.font='bold 9px sans-serif';
+    ctx.fillText('INGREDIENTES',detailX,153);
+    ingredients.forEach((ing,i)=>{
+      const iy=168+i*32;
+      // Fundo do ingrediente
+      ctx.fillStyle='rgba(255,255,255,0.03)';
+      ctx.beginPath();roundRect(ctx,detailX,iy,detailW,26,4);ctx.fill();
+      ctx.strokeStyle='rgba(255,255,255,0.06)';ctx.lineWidth=0.5;
+      ctx.beginPath();roundRect(ctx,detailX,iy,detailW,26,4);ctx.stroke();
+      ctx.fillStyle='rgba(214,242,245,0.7)';ctx.font='11px sans-serif';
+      ctx.fillText(ing.name,detailX+10,iy+17);
+      const ingColor=ing.ok?'#1D9E75':'#C0392B';
+      ctx.fillStyle=ingColor;ctx.font='bold 11px sans-serif';
+      const ingText=`${ing.have} / ${ing.need}${ing.ok?' ✓':' ✗'}`;
+      ctx.fillText(ingText,detailX+detailW-60,iy+17);
+      // Barra de progresso do ingrediente
+      const barW=detailW-80, barX=detailX+10;
+      ctx.fillStyle='rgba(255,255,255,0.06)';
+      ctx.beginPath();roundRect(ctx,barX,iy+20,barW,2,1);ctx.fill();
+      ctx.fillStyle=ingColor+'88';
+      ctx.beginPath();roundRect(ctx,barX,iy+20,barW*(ing.have/ing.need),2,1);ctx.fill();
+    });
+
+    // Tempo de craft
+    ctx.fillStyle='rgba(214,242,245,0.35)';ctx.font='10px sans-serif';
+    ctx.fillText('Tempo de fabricação: 4 segundos',detailX,242);
+
+    // Timer de craft (animado)
+    const craftProgress=(Math.sin(t*0.5)*0.5+0.5);
+    const timerW=detailW;
+    ctx.fillStyle='rgba(255,255,255,0.05)';
+    ctx.beginPath();roundRect(ctx,detailX,254,timerW,6,3);ctx.fill();
+    const timerGrad=ctx.createLinearGradient(detailX,0,detailX+timerW,0);
+    timerGrad.addColorStop(0,'#0B7A8A');timerGrad.addColorStop(1,'#1AABBD');
+    ctx.fillStyle=timerGrad;
+    ctx.beginPath();roundRect(ctx,detailX,254,timerW*craftProgress,6,3);ctx.fill();
+
+    // Botão de craft
+    const btnY=275, btnW=detailW, btnH=38;
+    const glowAlpha=0.15+Math.sin(t*2)*0.08;
+    const btnGrad=ctx.createLinearGradient(detailX,btnY,detailX,btnY+btnH);
+    btnGrad.addColorStop(0,'rgba(11,122,138,0.35)');
+    btnGrad.addColorStop(1,'rgba(11,122,138,0.2)');
+    ctx.fillStyle=btnGrad;
+    ctx.beginPath();roundRect(ctx,detailX,btnY,btnW,btnH,6);ctx.fill();
+    ctx.strokeStyle=`rgba(26,171,189,${0.5+Math.sin(t*2)*0.2})`;ctx.lineWidth=1;
+    ctx.beginPath();roundRect(ctx,detailX,btnY,btnW,btnH,6);ctx.stroke();
+    ctx.fillStyle='rgba(26,171,189,0.95)';ctx.font='bold 13px sans-serif';
+    ctx.textAlign='center';ctx.fillText('Fabricar →',detailX+btnW/2,btnY+24);ctx.textAlign='left';
+
+    // Glow do botão
+    const btnGlow=ctx.createRadialGradient(detailX+btnW/2,btnY+btnH/2,0,detailX+btnW/2,btnY+btnH/2,btnW*0.6);
+    btnGlow.addColorStop(0,`rgba(11,122,138,${glowAlpha})`);
+    btnGlow.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=btnGlow;ctx.fillRect(detailX,btnY-20,btnW,btnH+40);
+
+    // Painel direito — inventário resumido
+    const invX=W-168, invW=152;
+    ctx.fillStyle='rgba(6,43,58,0.8)';
+    ctx.beginPath();roundRect(ctx,invX,0,invW,H,0);ctx.fill();
+    ctx.strokeStyle='rgba(11,122,138,0.25)';ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.moveTo(invX,0);ctx.lineTo(invX,H);ctx.stroke();
+    ctx.fillStyle='rgba(26,171,189,0.6)';ctx.font='bold 9px sans-serif';
+    ctx.fillText('INVENTÁRIO',invX+12,24);
+
+    const invItems=[
+      {icon:'🌿',qty:18,col:'rgba(127,140,141,0.3)'},
+      {icon:'🔩',qty:7, col:'rgba(127,140,141,0.3)'},
+      {icon:'🪨',qty:24,col:'rgba(127,140,141,0.3)'},
+      {icon:'💎',qty:12,col:'rgba(41,128,185,0.25)'},
+      {icon:'⚡',qty:1, col:'rgba(41,128,185,0.25)'},
+      {icon:'🔥',qty:1, col:'rgba(230,126,34,0.2)'},
+    ];
+    invItems.forEach((item,i)=>{
+      const col=i%3, row=Math.floor(i/3);
+      const ix=invX+12+col*46, iy=36+row*50;
+      ctx.fillStyle=item.col;
+      ctx.strokeStyle='rgba(255,255,255,0.08)';ctx.lineWidth=0.5;
+      ctx.beginPath();roundRect(ctx,ix,iy,40,40,5);ctx.fill();ctx.stroke();
+      ctx.font='18px sans-serif';ctx.fillText(item.icon,ix+10,iy+27);
+      ctx.fillStyle='rgba(214,242,245,0.55)';ctx.font='9px sans-serif';
+      ctx.fillText('×'+item.qty,ix+24,iy+38);
+    });
+
+    // Label
+    ctx.fillStyle='rgba(214,242,245,0.8)';ctx.font='bold 12px sans-serif';
+    ctx.fillText('Mesa de Fabricação — Layout sci-fi aprovado',12,H-12);
+
+    requestAnimationFrame(()=>loop(t+0.016));
+  }
+
+  function roundRect(ctx,x,y,w,h,r){
+    ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+    ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+    ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();
+  }
+
+  loop(0);
+};
+
+// Init
+drawFns.island();
+drawn.island=true;
+</script>

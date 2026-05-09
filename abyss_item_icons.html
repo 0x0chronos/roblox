@@ -1,0 +1,193 @@
+
+<h2 class="sr-only">Ícones SVG de todos os itens e recursos do Abyss Survival organizados por categoria e raridade, no mesmo estilo visual do HUD aprovado</h2>
+<style>
+.wrap { padding: 1rem 0; }
+.sec { margin-bottom: 1.5rem; }
+.sec-title { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 8px; }
+.icon-card { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 8px 4px; border-radius: var(--border-radius-md); background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); cursor: pointer; transition: border-color 0.15s; }
+.icon-card:hover { border-color: var(--color-border-secondary); }
+.icon-card.selected { border: 1.5px solid #0B7A8A; background: rgba(11,122,138,0.08); }
+.icon-wrap { width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; position: relative; }
+.icon-name { font-size: 9px; color: var(--color-text-secondary); text-align: center; line-height: 1.3; }
+.rarity-dot { width: 5px; height: 5px; border-radius: 50%; position: absolute; bottom: 2px; right: 2px; }
+.preview { background: var(--color-background-primary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-lg); padding: 16px; margin-bottom: 1rem; display: flex; align-items: center; gap: 16px; min-height: 80px; }
+.preview-icon { width: 60px; height: 60px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.preview-name { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 2px; }
+.preview-type { font-size: 12px; color: #1AABBD; margin-bottom: 4px; }
+.preview-desc { font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; }
+.rarity-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 500; margin-top: 4px; }
+</style>
+
+<div class="wrap">
+<div class="preview" id="preview">
+  <div class="preview-icon" id="prev-icon" style="background:rgba(127,140,141,0.15);border:0.5px solid rgba(127,140,141,0.4)">
+    <svg width="36" height="36" viewBox="0 0 36 36"><path d="M10 26 Q14 10 18 8 Q22 10 26 26 Q22 28 18 28 Q14 28 10 26Z" fill="#3a8a50" opacity="0.9"/><path d="M14 26 Q15 16 18 10 Q21 16 22 26" fill="#2d7040" opacity="0.7"/><ellipse cx="18" cy="27" rx="8" ry="2" fill="#1a5030" opacity="0.4"/></svg>
+  </div>
+  <div>
+    <div class="preview-name" id="prev-name">Algas Nutritivas</div>
+    <div class="preview-type" id="prev-type">Recurso · Zona 1</div>
+    <div class="preview-desc" id="prev-desc">Algas ricas em nutrientes. Base de muitos craftings iniciais.</div>
+    <span class="rarity-badge" id="prev-rarity" style="background:rgba(127,140,141,0.15);color:#7F8C8D">Comum</span>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="sec-title">Recursos — comuns</div>
+  <div class="grid" id="g-common"></div>
+</div>
+<div class="sec">
+  <div class="sec-title">Recursos — incomuns</div>
+  <div class="grid" id="g-uncommon"></div>
+</div>
+<div class="sec">
+  <div class="sec-title">Recursos — raros e épicos</div>
+  <div class="grid" id="g-rare"></div>
+</div>
+<div class="sec">
+  <div class="sec-title">Equipamentos e armas</div>
+  <div class="grid" id="g-equip"></div>
+</div>
+<div class="sec">
+  <div class="sec-title">Módulos de base</div>
+  <div class="grid" id="g-base"></div>
+</div>
+<div class="sec">
+  <div class="sec-title">Consumíveis e únicos</div>
+  <div class="grid" id="g-special"></div>
+</div>
+</div>
+
+<script>
+const COLORS = {
+  common:   { bg:'rgba(127,140,141,0.15)', border:'rgba(127,140,141,0.4)', dot:'#7F8C8D', badge:'rgba(127,140,141,0.15)', badgeText:'#7F8C8D', label:'Comum'   },
+  uncommon: { bg:'rgba(41,128,185,0.15)',  border:'rgba(41,128,185,0.4)',  dot:'#2980B9', badge:'rgba(41,128,185,0.15)',  badgeText:'#76B8E0', label:'Incomum'  },
+  rare:     { bg:'rgba(142,68,173,0.15)',  border:'rgba(142,68,173,0.4)',  dot:'#8E44AD', badge:'rgba(142,68,173,0.15)',  badgeText:'#C39EDB', label:'Raro'     },
+  epic:     { bg:'rgba(230,126,34,0.15)',  border:'rgba(230,126,34,0.4)',  dot:'#E67E22', badge:'rgba(230,126,34,0.15)',  badgeText:'#F0A855', label:'Épico'    },
+  unique:   { bg:'rgba(241,196,15,0.15)',  border:'rgba(241,196,15,0.4)',  dot:'#F1C40F', badge:'rgba(241,196,15,0.15)',  badgeText:'#D4AC0D', label:'Único'    },
+};
+
+function makeSVG(type) {
+  const svgs = {
+    algas: `<svg width="36" height="36" viewBox="0 0 36 36"><path d="M10 26 Q14 10 18 8 Q22 10 26 26 Q22 28 18 28 Q14 28 10 26Z" fill="#3a8a50" opacity="0.9"/><path d="M14 26 Q15 16 18 10 Q21 16 22 26" fill="#2d7040" opacity="0.7"/><ellipse cx="18" cy="27" rx="8" ry="2" fill="#1a5030" opacity="0.4"/></svg>`,
+    sucata: `<svg width="36" height="36" viewBox="0 0 36 36"><rect x="8" y="12" width="20" height="14" rx="2" fill="#6B7280" opacity="0.85"/><rect x="11" y="9" width="5" height="5" rx="1" fill="#9CA3AF"/><rect x="20" y="9" width="5" height="5" rx="1" fill="#9CA3AF"/><rect x="12" y="16" width="12" height="2" rx="1" fill="#4B5563"/><rect x="12" y="20" width="8" height="2" rx="1" fill="#4B5563"/><circle cx="26" cy="12" r="3" fill="#E67E22" opacity="0.7"/></svg>`,
+    calcario: `<svg width="36" height="36" viewBox="0 0 36 36"><polygon points="18,7 28,14 26,26 10,26 8,14" fill="#C8B89A" opacity="0.9"/><polygon points="18,7 28,14 24,11 16,9" fill="#D4C5A9" opacity="0.7"/><polygon points="10,26 26,26 22,22 12,22" fill="#A89880" opacity="0.7"/><line x1="14" y1="14" x2="10" y2="26" stroke="#8B7D6B" stroke-width="0.5"/></svg>`,
+    ferro: `<svg width="36" height="36" viewBox="0 0 36 36"><rect x="9" y="14" width="18" height="10" rx="2" fill="#4A6FA5" opacity="0.9"/><rect x="9" y="14" width="18" height="4" rx="2" fill="#5B7DB5" opacity="0.7"/><rect x="13" y="10" width="10" height="6" rx="1" fill="#3D5C8A" opacity="0.8"/><rect x="11" y="22" width="14" height="3" rx="1" fill="#3A5580"/></svg>`,
+    algas_pren: `<svg width="36" height="36" viewBox="0 0 36 36"><rect x="10" y="10" width="16" height="18" rx="2" fill="#2E7D32" opacity="0.85"/><line x1="10" y1="15" x2="26" y2="15" stroke="#1B5E20" stroke-width="1"/><line x1="10" y1="20" x2="26" y2="20" stroke="#1B5E20" stroke-width="1"/><line x1="10" y1="25" x2="26" y2="25" stroke="#1B5E20" stroke-width="1"/><rect x="14" y="7" width="8" height="5" rx="1" fill="#388E3C" opacity="0.7"/></svg>`,
+    gel_basico: `<svg width="36" height="36" viewBox="0 0 36 36"><ellipse cx="18" cy="20" rx="10" ry="9" fill="#26A69A" opacity="0.8"/><ellipse cx="18" cy="20" rx="7" ry="6" fill="#4DB6AC" opacity="0.5"/><ellipse cx="15" cy="16" rx="3" ry="2" fill="#80CBC4" opacity="0.6"/><path d="M16 11 Q18 7 20 11" fill="none" stroke="#26A69A" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+    cristal: `<svg width="36" height="36" viewBox="0 0 36 36"><polygon points="18,6 26,14 24,28 12,28 10,14" fill="#2980B9" opacity="0.85"/><polygon points="18,6 26,14 22,9 16,7" fill="#5DADE2" opacity="0.7"/><polygon points="12,28 24,28 20,22 14,22" fill="#1A5276" opacity="0.7"/><line x1="18" y1="6" x2="18" y2="28" stroke="#85C1E9" stroke-width="0.5" opacity="0.8"/></svg>`,
+    ferro_abissal: `<svg width="36" height="36" viewBox="0 0 36 36"><rect x="9" y="13" width="18" height="12" rx="2" fill="#1A3A5C" opacity="0.95"/><rect x="9" y="13" width="18" height="5" rx="2" fill="#2C5282" opacity="0.7"/><path d="M13 17 L23 17 L21 21 L15 21Z" fill="#0D2137" opacity="0.6"/><circle cx="26" cy="11" r="4" fill="#1AABBD" opacity="0.8"/><line x1="23" y1="13" x2="26" y2="15" stroke="#48D1CC" stroke-width="1"/></svg>`,
+    esporo: `<svg width="36" height="36" viewBox="0 0 36 36"><circle cx="18" cy="18" r="10" fill="#0D2137" opacity="0.9"/><circle cx="18" cy="18" r="7" fill="#0B3D5C" opacity="0.7"/><circle cx="18" cy="18" r="4" fill="#00BCD4" opacity="0.9"/><circle cx="18" cy="18" r="2" fill="#E0F7FA" opacity="0.9"/><line x1="18" y1="8" x2="18" y2="5" stroke="#00BCD4" stroke-width="1" opacity="0.7"/><line x1="26" y1="13" x2="29" y2="11" stroke="#00BCD4" stroke-width="1" opacity="0.7"/><line x1="26" y1="23" x2="29" y2="25" stroke="#00BCD4" stroke-width="1" opacity="0.7"/><line x1="18" y1="28" x2="18" y2="31" stroke="#00BCD4" stroke-width="1" opacity="0.7"/><line x1="10" y1="23" x2="7" y2="25" stroke="#00BCD4" stroke-width="1" opacity="0.7"/><line x1="10" y1="13" x2="7" y2="11" stroke="#00BCD4" stroke-width="1" opacity="0.7"/></svg>`,
+    sucata_el: `<svg width="36" height="36" viewBox="0 0 36 36"><rect x="8" y="11" width="20" height="16" rx="2" fill="#374151" opacity="0.9"/><rect x="11" y="14" width="6" height="4" rx="1" fill="#6EE7B7" opacity="0.8"/><rect x="19" y="14" width="6" height="4" rx="1" fill="#6EE7B7" opacity="0.8"/><path d="M14 22 L16 18 L18 22 L20 18 L22 22" fill="none" stroke="#34D399" stroke-width="1.5" stroke-linecap="round"/><circle cx="26" cy="10" r="3" fill="#10B981" opacity="0.9"/></svg>`,
+    titanio: `<svg width="36" height="36" viewBox="0 0 36 36"><polygon points="18,6 29,16 25,29 11,29 7,16" fill="#6B21A8" opacity="0.9"/><polygon points="18,6 29,16 25,11 18,8" fill="#9333EA" opacity="0.6"/><polygon points="11,29 25,29 21,23 13,23" fill="#4C1D95" opacity="0.8"/><line x1="18" y1="6" x2="11" y2="29" stroke="#C4B5FD" stroke-width="0.5" opacity="0.7"/><line x1="18" y1="6" x2="25" y2="29" stroke="#C4B5FD" stroke-width="0.5" opacity="0.7"/></svg>`,
+    gel_bio: `<svg width="36" height="36" viewBox="0 0 36 36"><ellipse cx="18" cy="20" rx="10" ry="9" fill="#064E3B" opacity="0.9"/><ellipse cx="18" cy="20" rx="7" ry="6" fill="#065F46" opacity="0.7"/><ellipse cx="18" cy="18" rx="4" ry="3" fill="#00FF7F" opacity="0.8"/><ellipse cx="16" cy="16" rx="2" ry="1.5" fill="#6FFFC0" opacity="0.7"/><path d="M16 11 Q18 7 20 11" fill="none" stroke="#00FF7F" stroke-width="1.5" stroke-linecap="round"/><circle cx="22" cy="13" r="1.5" fill="#00FF7F" opacity="0.6"/></svg>`,
+    nucleo_m: `<svg width="36" height="36" viewBox="0 0 36 36"><circle cx="18" cy="18" r="11" fill="#7C2D12" opacity="0.9"/><circle cx="18" cy="18" r="8" fill="#9A3412" opacity="0.7"/><circle cx="18" cy="18" r="5" fill="#EA580C" opacity="0.9"/><circle cx="18" cy="18" r="2.5" fill="#FED7AA" opacity="0.9"/><line x1="18" y1="7" x2="18" y2="4" stroke="#EA580C" stroke-width="1.5" opacity="0.8"/><line x1="27" y1="12" x2="30" y2="10" stroke="#EA580C" stroke-width="1.5" opacity="0.8"/><line x1="27" y1="24" x2="30" y2="26" stroke="#EA580C" stroke-width="1.5" opacity="0.8"/><line x1="18" y1="29" x2="18" y2="32" stroke="#EA580C" stroke-width="1.5" opacity="0.8"/><line x1="9" y1="24" x2="6" y2="26" stroke="#EA580C" stroke-width="1.5" opacity="0.8"/><line x1="9" y1="12" x2="6" y2="10" stroke="#EA580C" stroke-width="1.5" opacity="0.8"/></svg>`,
+    shard: `<svg width="36" height="36" viewBox="0 0 36 36"><polygon points="18,5 24,12 28,22 22,30 14,30 8,22 12,12" fill="#0F172A" opacity="0.95"/><polygon points="18,5 24,12 20,8 18,5" fill="#F59E0B" opacity="0.8"/><polygon points="14,30 22,30 20,26 16,26" fill="#D97706" opacity="0.7"/><line x1="18" y1="5" x2="14" y2="30" stroke="#FCD34D" stroke-width="0.7" opacity="0.8"/><line x1="18" y1="5" x2="22" y2="30" stroke="#FCD34D" stroke-width="0.7" opacity="0.8"/><line x1="12" y1="12" x2="28" y2="22" stroke="#FCD34D" stroke-width="0.5" opacity="0.5"/></svg>`,
+    nucleo: `<svg width="36" height="36" viewBox="0 0 36 36"><circle cx="18" cy="18" r="12" fill="#431407" opacity="0.95"/><circle cx="18" cy="18" r="9" fill="#7C2D12" opacity="0.8"/><circle cx="18" cy="18" r="6" fill="#DC2626" opacity="0.9"/><circle cx="18" cy="18" r="3" fill="#FCA5A5" opacity="0.9"/><line x1="18" y1="6" x2="18" y2="3" stroke="#DC2626" stroke-width="2" opacity="0.9"/><line x1="28" y1="11" x2="31" y2="9" stroke="#DC2626" stroke-width="2" opacity="0.9"/><line x1="28" y1="25" x2="31" y2="27" stroke="#DC2626" stroke-width="2" opacity="0.9"/><line x1="18" y1="30" x2="18" y2="33" stroke="#DC2626" stroke-width="2" opacity="0.9"/><line x1="8" y1="25" x2="5" y2="27" stroke="#DC2626" stroke-width="2" opacity="0.9"/><line x1="8" y1="11" x2="5" y2="9" stroke="#DC2626" stroke-width="2" opacity="0.9"/></svg>`,
+    obsidiana: `<svg width="36" height="36" viewBox="0 0 36 36"><polygon points="18,5 30,18 18,31 6,18" fill="#0F172A" opacity="0.97"/><polygon points="18,5 30,18 24,11" fill="#1E293B" opacity="0.7"/><polygon points="6,18 18,31 12,25" fill="#020617" opacity="0.8"/><line x1="18" y1="5" x2="6" y2="18" stroke="#475569" stroke-width="0.7"/><line x1="18" y1="5" x2="30" y2="18" stroke="#475569" stroke-width="0.7"/></svg>`,
+    reliquia: `<svg width="36" height="36" viewBox="0 0 36 36"><polygon points="18,4 22,14 32,14 24,20 27,30 18,24 9,30 12,20 4,14 14,14" fill="#92400E" opacity="0.9"/><polygon points="18,4 22,14 32,14 24,20 27,30 18,24 9,30 12,20 4,14 14,14" fill="none" stroke="#FCD34D" stroke-width="1.5" opacity="0.8"/><circle cx="18" cy="17" r="4" fill="#F59E0B" opacity="0.9"/><circle cx="18" cy="17" r="2" fill="#FDE68A" opacity="0.9"/></svg>`,
+    kit_medico: `<svg width="36" height="36" viewBox="0 0 36 36"><rect x="8" y="10" width="20" height="18" rx="3" fill="#DC2626" opacity="0.85"/><rect x="15" y="13" width="6" height="12" rx="1" fill="white" opacity="0.9"/><rect x="11" y="16" width="14" height="6" rx="1" fill="white" opacity="0.9"/></svg>`,
+    faca: `<svg width="36" height="36" viewBox="0 0 36 36"><path d="M12 28 L14 10 L22 16 Z" fill="#9CA3AF" opacity="0.9"/><path d="M14 10 L22 16 L20 18 L12 28 L14 10Z" fill="#D1D5DB" opacity="0.7"/><rect x="11" y="25" width="8" height="5" rx="1" fill="#6B7280" opacity="0.9"/><line x1="14" y1="10" x2="21" y2="16" stroke="#E5E7EB" stroke-width="0.5"/></svg>`,
+    lanterna: `<svg width="36" height="36" viewBox="0 0 36 36"><rect x="14" y="16" width="8" height="12" rx="2" fill="#374151" opacity="0.9"/><ellipse cx="18" cy="15" rx="6" ry="5" fill="#1F2937" opacity="0.9"/><ellipse cx="18" cy="14" rx="4" ry="3" fill="#FDE68A" opacity="0.9"/><line x1="12" y1="10" x2="9" y2="7" stroke="#FDE68A" stroke-width="1" opacity="0.6"/><line x1="18" y1="9" x2="18" y2="5" stroke="#FDE68A" stroke-width="1" opacity="0.6"/><line x1="24" y1="10" x2="27" y2="7" stroke="#FDE68A" stroke-width="1" opacity="0.6"/></svg>`,
+    traje_t1: `<svg width="36" height="36" viewBox="0 0 36 36"><ellipse cx="18" cy="13" rx="7" ry="7" fill="#1E3A5F" opacity="0.9"/><ellipse cx="18" cy="13" rx="5" ry="5" fill="#2563EB" opacity="0.7"/><ellipse cx="18" cy="13" rx="3" ry="3" fill="#93C5FD" opacity="0.8"/><path d="M11 18 Q8 22 9 27 L27 27 Q28 22 25 18Z" fill="#1E3A5F" opacity="0.9"/><rect x="8" y="18" width="4" height="8" rx="2" fill="#1E3A5F" opacity="0.8"/><rect x="24" y="18" width="4" height="8" rx="2" fill="#1E3A5F" opacity="0.8"/><line x1="14" y1="20" x2="22" y2="20" stroke="#3B82F6" stroke-width="1" opacity="0.6"/></svg>`,
+    arpao: `<svg width="36" height="36" viewBox="0 0 36 36"><line x1="8" y1="28" x2="26" y2="10" stroke="#9CA3AF" stroke-width="2.5" stroke-linecap="round"/><polygon points="26,10 30,8 28,14" fill="#E5E7EB"/><rect x="6" y="24" width="6" height="8" rx="2" fill="#4B5563" transform="rotate(-45 9 28)"/></svg>`,
+    propulsor: `<svg width="36" height="36" viewBox="0 0 36 36"><ellipse cx="18" cy="18" rx="7" ry="10" fill="#1E3A5F" opacity="0.9"/><ellipse cx="18" cy="18" rx="5" ry="7" fill="#2563EB" opacity="0.6"/><path d="M11 22 Q6 26 7 30 L11 28Z" fill="#3B82F6" opacity="0.8"/><path d="M25 22 Q30 26 29 30 L25 28Z" fill="#3B82F6" opacity="0.8"/><ellipse cx="18" cy="16" rx="3" ry="2" fill="#93C5FD" opacity="0.9"/></svg>`,
+    sonar: `<svg width="36" height="36" viewBox="0 0 36 36"><circle cx="18" cy="18" r="11" fill="#0F172A" opacity="0.9"/><circle cx="18" cy="18" r="8" fill="none" stroke="#1AABBD" stroke-width="0.7" opacity="0.6"/><circle cx="18" cy="18" r="5" fill="none" stroke="#1AABBD" stroke-width="0.7" opacity="0.5"/><circle cx="18" cy="18" r="2" fill="none" stroke="#1AABBD" stroke-width="0.7" opacity="0.4"/><line x1="18" y1="7" x2="18" y2="18" stroke="#00FF7F" stroke-width="1.5" opacity="0.8" transform="rotate(40 18 18)"/><circle cx="24" cy="13" r="2" fill="#DC2626" opacity="0.9"/><circle cx="13" cy="22" r="1.5" fill="#1D9E75" opacity="0.9"/></svg>`,
+    tanque_o2: `<svg width="36" height="36" viewBox="0 0 36 36"><rect x="12" y="8" width="12" height="22" rx="6" fill="#0E7490" opacity="0.9"/><rect x="12" y="8" width="12" height="10" rx="6" fill="#0891B2" opacity="0.6"/><rect x="15" y="5" width="6" height="5" rx="2" fill="#164E63" opacity="0.9"/><line x1="14" y1="18" x2="22" y2="18" stroke="#67E8F9" stroke-width="1" opacity="0.7"/><line x1="14" y1="22" x2="22" y2="22" stroke="#67E8F9" stroke-width="1" opacity="0.5"/></svg>`,
+    minisub: `<svg width="36" height="36" viewBox="0 0 36 36"><ellipse cx="18" cy="20" rx="13" ry="8" fill="#1E3A5F" opacity="0.9"/><ellipse cx="18" cy="18" rx="10" ry="6" fill="#2563EB" opacity="0.5"/><rect x="15" y="10" width="6" height="10" rx="3" fill="#1E3A5F" opacity="0.9"/><circle cx="12" cy="20" r="3" fill="#374151" opacity="0.9"/><circle cx="24" cy="20" r="3" fill="#374151" opacity="0.9"/><ellipse cx="23" cy="18" rx="3" ry="2" fill="#93C5FD" opacity="0.8"/><line x1="5" y1="20" x2="8" y2="20" stroke="#1AABBD" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+    mod_casco: `<svg width="36" height="36" viewBox="0 0 36 36"><polygon points="18,6 28,11 28,25 18,30 8,25 8,11" fill="#0F2942" opacity="0.95"/><polygon points="18,6 28,11 24,9 18,7" fill="#1E4070" opacity="0.7"/><polygon points="8,25 28,25 24,22 12,22" fill="#081A2E" opacity="0.7"/><rect x="15" y="14" width="6" height="8" rx="1" fill="#1AABBD" opacity="0.7"/><line x1="8" y1="11" x2="28" y2="11" stroke="#1AABBD" stroke-width="0.7" opacity="0.5"/><line x1="8" y1="25" x2="28" y2="25" stroke="#1AABBD" stroke-width="0.7" opacity="0.5"/></svg>`,
+    mod_o2: `<svg width="36" height="36" viewBox="0 0 36 36"><polygon points="18,6 28,11 28,25 18,30 8,25 8,11" fill="#0F2942" opacity="0.95"/><rect x="14" y="12" width="4" height="14" rx="2" fill="#0891B2" opacity="0.85"/><rect x="19" y="12" width="4" height="14" rx="2" fill="#0891B2" opacity="0.85"/><rect x="16" y="9" width="5" height="4" rx="1" fill="#164E63"/><line x1="8" y1="11" x2="28" y2="11" stroke="#1AABBD" stroke-width="0.7" opacity="0.4"/></svg>`,
+    mod_energia: `<svg width="36" height="36" viewBox="0 0 36 36"><polygon points="18,6 28,11 28,25 18,30 8,25 8,11" fill="#0F2942" opacity="0.95"/><polygon points="20,10 14,19 18,19 16,28 22,17 18,17" fill="#FDE68A" opacity="0.9"/><line x1="8" y1="11" x2="28" y2="11" stroke="#F59E0B" stroke-width="0.7" opacity="0.5"/><line x1="8" y1="25" x2="28" y2="25" stroke="#F59E0B" stroke-width="0.7" opacity="0.5"/></svg>`,
+    mod_lab: `<svg width="36" height="36" viewBox="0 0 36 36"><polygon points="18,6 28,11 28,25 18,30 8,25 8,11" fill="#0F2942" opacity="0.95"/><ellipse cx="18" cy="18" rx="4" ry="6" fill="#6EE7B7" opacity="0.8"/><ellipse cx="18" cy="16" rx="2.5" ry="2" fill="#A7F3D0" opacity="0.8"/><rect x="16" y="22" width="4" height="5" rx="1" fill="#059669" opacity="0.8"/><line x1="8" y1="11" x2="28" y2="11" stroke="#10B981" stroke-width="0.7" opacity="0.5"/></svg>`,
+    mod_hangar: `<svg width="36" height="36" viewBox="0 0 36 36"><polygon points="18,6 28,11 28,25 18,30 8,25 8,11" fill="#0F2942" opacity="0.95"/><rect x="12" y="17" width="12" height="9" rx="1" fill="#1E3A5F" opacity="0.8"/><rect x="14" y="14" width="8" height="5" rx="1" fill="#2563EB" opacity="0.6"/><line x1="18" y1="17" x2="18" y2="26" stroke="#1AABBD" stroke-width="0.5" opacity="0.6"/><line x1="8" y1="11" x2="28" y2="11" stroke="#1AABBD" stroke-width="0.7" opacity="0.4"/></svg>`,
+    mod_sonar: `<svg width="36" height="36" viewBox="0 0 36 36"><polygon points="18,6 28,11 28,25 18,30 8,25 8,11" fill="#0F2942" opacity="0.95"/><circle cx="18" cy="18" r="7" fill="none" stroke="#1AABBD" stroke-width="0.8" opacity="0.6"/><circle cx="18" cy="18" r="4" fill="none" stroke="#1AABBD" stroke-width="0.8" opacity="0.5"/><circle cx="18" cy="18" r="1.5" fill="#1AABBD" opacity="0.9"/><line x1="18" y1="11" x2="18" y2="18" stroke="#00FF7F" stroke-width="1.5" opacity="0.8" transform="rotate(50 18 18)"/></svg>`,
+    bau: `<svg width="36" height="36" viewBox="0 0 36 36"><rect x="7" y="16" width="22" height="14" rx="2" fill="#78350F" opacity="0.9"/><rect x="7" y="12" width="22" height="7" rx="2" fill="#92400E" opacity="0.9"/><rect x="7" y="16" width="22" height="2" fill="#6B3500" opacity="0.7"/><rect x="15" y="14" width="6" height="5" rx="1" fill="#D97706" opacity="0.8"/><circle cx="18" cy="17" r="1.5" fill="#FCD34D" opacity="0.9"/></svg>`,
+  };
+  return svgs[type] || `<svg width="36" height="36" viewBox="0 0 36 36"><circle cx="18" cy="18" r="12" fill="#374151" opacity="0.5"/></svg>`;
+}
+
+const items = {
+  'g-common': [
+    { id:'algas',      name:'Algas Nutritivas', type:'Recurso · Zona 1',  rarity:'common',   desc:'Base de muitos craftings. Abundante na Zona 1.' },
+    { id:'sucata',     name:'Sucata',            type:'Recurso · Zona 1',  rarity:'common',   desc:'Metal retorcido de naufrágios. Versátil e abundante.' },
+    { id:'calcario',   name:'Calcário',           type:'Recurso · Zona 1',  rarity:'common',   desc:'Rocha sedimentar densa. Usada em estruturas.' },
+    { id:'ferro',      name:'Ferro Simples',      type:'Recurso · Zona 1',  rarity:'common',   desc:'Minério básico. Encontrado em fendas de rocha da Z1.' },
+    { id:'algas_pren', name:'Algas Prensadas',    type:'Recurso · Zona 1',  rarity:'common',   desc:'Algas comprimidas em bloco. Úteis em construção.' },
+    { id:'gel_basico', name:'Gel Básico',          type:'Recurso · Zona 1',  rarity:'common',   desc:'Substância viscosa extraída de organismos da Z1.' },
+  ],
+  'g-uncommon': [
+    { id:'cristal',    name:'Cristal Marinho',    type:'Recurso · Zona 2',  rarity:'uncommon', desc:'Cristal bioluminescente da Z2. Essencial para eletrônica.' },
+    { id:'ferro_abissal',name:'Ferro Abissal',    type:'Recurso · Zona 2',  rarity:'uncommon', desc:'Liga metálica densa formada pela pressão abissal.' },
+    { id:'esporo',     name:'Esporo Bioluminescente',type:'Recurso · Z1-Z2',rarity:'uncommon', desc:'Emite luz própria. Usado em iluminação e armadilhas.' },
+    { id:'sucata_el',  name:'Sucata Eletrônica',  type:'Recurso · Zona 2',  rarity:'uncommon', desc:'Componentes eletrônicos da Estação de Pesquisa.' },
+  ],
+  'g-rare': [
+    { id:'titanio',    name:'Titânio das Profundezas',type:'Recurso · Zona 3',rarity:'rare',  desc:'Metal ultra-resistente formado a alta pressão. Tier 2.' },
+    { id:'gel_bio',    name:'Gel Bioluminescente', type:'Recurso · Zona 3',  rarity:'rare',   desc:'Gel orgânico de criatura da Z3. Emite luz intensa.' },
+    { id:'nucleo_m',   name:'Núcleo Térmico Menor',type:'Recurso · Zona 3', rarity:'rare',   desc:'Núcleo de energia das chaminés hidrotérmicas.' },
+    { id:'nucleo',     name:'Núcleo Térmico',      type:'Recurso · Zona 4',  rarity:'epic',   desc:'Núcleo de alta energia. Alimenta sistemas avançados.' },
+    { id:'shard',      name:'Shard Hadal',          type:'Recurso · Zona 4',  rarity:'epic',   desc:'Fragmento cristalino da Zona Hadal. Origem desconhecida.' },
+    { id:'obsidiana',  name:'Obsidiana Abissal',   type:'Recurso · Zona 4',  rarity:'epic',   desc:'Vidro vulcânico negro das profundezas. Extremamente duro.' },
+    { id:'reliquia',   name:'Relíquia do Naufrágio',type:'Evento único',     rarity:'unique', desc:'Objeto de origem desconhecida. Só em eventos especiais.' },
+  ],
+  'g-equip': [
+    { id:'faca',       name:'Faca de Coleta',      type:'Ferramenta · T0',   rarity:'common',  desc:'Coleta recursos 2× mais rápido.' },
+    { id:'lanterna',   name:'Lanterna Básica',      type:'Ferramenta · T0',   rarity:'common',  desc:'Ilumina 15m à frente. Essencial na Z3+.' },
+    { id:'traje_t1',   name:'Traje de Pressão T1',  type:'Equipamento · T1',  rarity:'uncommon',desc:'Protege completamente na Zona 2.' },
+    { id:'arpao',      name:'Arpão Básico',          type:'Arma · T1',         rarity:'uncommon',desc:'Arma à distância. 3 usos por recarga. Dano: 35.' },
+    { id:'propulsor',  name:'Propulsor Aquático',   type:'Equipamento · T1',  rarity:'uncommon',desc:'Aumenta velocidade de nado 2×. Consome mais O₂.' },
+    { id:'sonar',      name:'Sonar Portátil',        type:'Ferramenta · T1',   rarity:'uncommon',desc:'Revela criaturas e recursos em 30m.' },
+    { id:'tanque_o2',  name:'Tanque O₂ Médio',      type:'Equipamento · T1',  rarity:'common',  desc:'250 segundos de autonomia de oxigênio.' },
+    { id:'minisub',    name:'Minisub',               type:'Veículo · T2',      rarity:'rare',    desc:'Veículo subaquático. Velocidade 2×. O₂ dura mais.' },
+  ],
+  'g-base': [
+    { id:'mod_casco',  name:'Casco Central',        type:'Módulo de Base · T0',rarity:'common', desc:'Núcleo inquebrável. Cama de respawn e baú inicial.' },
+    { id:'mod_o2',     name:'Módulo de O₂',         type:'Módulo de Base · T0',rarity:'common', desc:'Recarrega o tanque de O₂ dos jogadores na base.' },
+    { id:'mod_energia',name:'Gerador Solar',         type:'Módulo de Base · T1',rarity:'uncommon',desc:'Fornece 5 unidades de energia para a base.' },
+    { id:'mod_lab',    name:'Módulo Laboratório',    type:'Módulo de Base · T1',rarity:'rare',   desc:'Habilita crafting de Tier 2.' },
+    { id:'mod_hangar', name:'Hangar Submersível',    type:'Módulo de Base · T2',rarity:'rare',   desc:'Guarda e repara veículos.' },
+    { id:'mod_sonar',  name:'Torre de Sonar',        type:'Módulo de Base · T2',rarity:'rare',   desc:'Revela criaturas em raio maior ao redor da base.' },
+    { id:'bau',        name:'Baú de Madeira',        type:'Módulo de Base · T0',rarity:'common', desc:'Armazenamento de 16 slots na base.' },
+  ],
+  'g-special': [
+    { id:'kit_medico', name:'Kit Médico Simples',    type:'Consumível · T0',   rarity:'common',  desc:'Restaura 40 HP ao usar.' },
+  ],
+};
+
+let selected = null;
+
+function select(item) {
+  const c = COLORS[item.rarity];
+  document.getElementById('prev-name').textContent = item.name;
+  document.getElementById('prev-type').textContent = item.type;
+  document.getElementById('prev-desc').textContent = item.desc;
+  document.getElementById('prev-icon').style.background = c.bg;
+  document.getElementById('prev-icon').style.border = '0.5px solid '+c.border;
+  document.getElementById('prev-icon').innerHTML = makeSVG(item.id);
+  document.getElementById('prev-rarity').style.background = c.badge;
+  document.getElementById('prev-rarity').style.color = c.badgeText;
+  document.getElementById('prev-rarity').textContent = c.label;
+  document.querySelectorAll('.icon-card').forEach(el => el.classList.remove('selected'));
+  if(selected) selected.classList.remove('selected');
+  event.currentTarget.classList.add('selected');
+  selected = event.currentTarget;
+}
+
+Object.entries(items).forEach(([gridId, list]) => {
+  const grid = document.getElementById(gridId);
+  list.forEach(item => {
+    const c = COLORS[item.rarity];
+    const card = document.createElement('div');
+    card.className = 'icon-card';
+    card.onclick = select.bind(null, item);
+    card.innerHTML = `
+      <div class="icon-wrap" id="icon-${item.id}" style="background:${c.bg};border:0.5px solid ${c.border}">
+        ${makeSVG(item.id)}
+        <div class="rarity-dot" style="background:${c.dot}"></div>
+      </div>
+      <div class="icon-name">${item.name}</div>
+    `;
+    grid.appendChild(card);
+  });
+});
+</script>
