@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Z-Smash Arena — Protótipo de Mecânica</title>
+  <style>
+    :root {
+      --bg: #071335;
+      --panel: rgba(12, 20, 48, 0.88);
+      --line: rgba(255,255,255,0.18);
+      --cyan: #26e7ff;
+      --pink: #ff2bd6;
+      --lime: #a8ff32;
+      --gold: #ffd33d;
+      --text: #f7fbff;
+      --muted: rgba(247,251,255,0.72);
+      --danger: #ff455e;
+      --green: #38ff73;
+      --rare-common: #ffffff;
+      --rare-uncommon: #37ff7b;
+      --rare-rare: #37a8ff;
+      --rare-epic: #ba5cff;
+      --rare-legendary: #ffe04b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 20% 8%, rgba(38,231,255,0.28), transparent 28%),
+        radial-gradient(circle at 80% 16%, rgba(255,43,214,0.20), transparent 30%),
+        linear-gradient(180deg, #0b1a50 0%, #071335 52%, #030713 100%);
+      overflow-x: hidden;
+    }
+    .app { max-width: 1220px; margin: 0 auto; padding: 22px; }
+    .hero {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 18px;
+      align-items: stretch;
+      margin-bottom: 18px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: 0 18px 60px rgba(0,0,0,0.32), inset 0 1px rgba(255,255,255,0.08);
+      overflow: hidden;
+      backdrop-filter: blur(12px);
+    }
+    .intro { padding: 24px; position: relative; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border: 1px solid rgba(38,231,255,0.35);
+      border-radius: 999px;
+      background: rgba(38,231,255,0.12);
+      color: #baf8ff;
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 14px 0 10px;
+      font-size: clamp(38px, 7vw, 78px);
+      line-height: 0.88;
+      letter-spacing: -0.06em;
+      text-transform: uppercase;
+      text-shadow: 0 4px #00102c, 0 0 28px rgba(38,231,255,0.32);
+    }
+    h1 span { color: var(--pink); }
+    p { color: var(--muted); line-height: 1.55; }
+    .pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .pill { padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,0.08); font-weight: 700; font-size: 13px; }
+    .game-card { padding: 14px; }
+    .stage-wrap { position: relative; min-height: 720px; }
+    canvas {
+      width: 100%;
+      height: 720px;
+      display: block;
+      border-radius: 20px;
+      background: linear-gradient(180deg, #34e278 0%, #22c76b 48%, #20b25f 100%);
+      border: 3px solid rgba(255,255,255,0.75);
+      box-shadow: inset 0 0 0 10px rgba(0,0,0,0.10);
+    }
+    .hud-top, .hud-bottom {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      pointer-events: none;
+    }
+    .hud-top { top: 16px; }
+    .hud-bottom { bottom: 16px; align-items: end; }
+    .player-panel, .enemy-panel, .charge-panel, .timing-panel {
+      background: rgba(3, 8, 24, 0.74);
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 16px;
+      padding: 10px;
+      min-width: 190px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+    }
+    .name { font-weight: 900; text-shadow: 0 2px #000; }
+    .bar { height: 12px; border-radius: 999px; overflow: hidden; background: #11192c; border: 2px solid #000; margin-top: 5px; }
+    .bar > i { display: block; height: 100%; width: 50%; background: linear-gradient(90deg, #28ff6f, #d7ff2a); transition: width 0.2s; }
+    .enemy-panel .bar > i { background: linear-gradient(90deg, #ff394d, #ffcc2e); }
+    .charge-panel .bar > i { background: linear-gradient(90deg, #ff2bd6, #ffe04b); }
+    .stat { color: var(--muted); font-size: 12px; font-weight: 700; }
+    .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    button {
+      border: 0;
+      border-radius: 14px;
+      color: #041027;
+      font-weight: 950;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      padding: 12px 14px;
+      cursor: pointer;
+      background: linear-gradient(180deg, #ffffff, #bdedff);
+      box-shadow: 0 5px 0 #22677a, 0 12px 26px rgba(0,0,0,0.20);
+    }
+    button.primary { background: linear-gradient(180deg, #fff36a, #ff9f21); box-shadow: 0 5px 0 #8b4300, 0 12px 26px rgba(0,0,0,0.20); }
+    button.pink { background: linear-gradient(180deg, #ff8ff0, #ff21bc); box-shadow: 0 5px 0 #87146e, 0 12px 26px rgba(0,0,0,0.20); color: white; }
+    button:active { transform: translateY(3px); box-shadow: 0 2px 0 #183c4b; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .section { padding: 18px; }
+    h2 { margin: 0 0 12px; font-size: 24px; letter-spacing: -0.02em; }
+    h3 { margin: 10px 0 8px; }
+    .rarity-list, .weapon-list, .equip-list { display: grid; gap: 8px; }
+    .rarity, .weapon, .equip {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.075);
+      border: 1px solid rgba(255,255,255,0.10);
+      font-size: 13px;
+    }
+    .rarity b, .weapon b, .equip b { color: white; }
+    .tag { font-size: 11px; font-weight: 950; border-radius: 999px; padding: 4px 8px; color: #071335; background: white; white-space: nowrap; }
+    .common { background: var(--rare-common); }
+    .uncommon { background: var(--rare-uncommon); }
+    .rareTag { background: var(--rare-rare); color: white; }
+    .epic { background: var(--rare-epic); color: white; }
+    .legendary { background: var(--rare-legendary); }
+    .formula {
+      background: rgba(0,0,0,0.22);
+      border-radius: 16px;
+      padding: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      color: #d9fbff;
+      border: 1px solid rgba(38,231,255,0.18);
+      font-size: 12px;
+      overflow: auto;
+    }
+    .toast {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 54px;
+      font-weight: 1000;
+      color: #fff;
+      text-shadow: 0 4px #081431, 0 0 24px var(--pink);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.16s, transform 0.16s;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, -62%) scale(1.04); }
+    .callout { border-left: 5px solid var(--pink); padding: 12px 14px; background: rgba(255,43,214,0.10); border-radius: 14px; }
+    @media (max-width: 980px) {
+      .hero, .grid { grid-template-columns: 1fr; }
+      canvas { height: 640px; }
+      .stage-wrap { min-height: 640px; }
+      .hud-top, .hud-bottom { left: 10px; right: 10px; }
+      .player-panel, .enemy-panel, .charge-panel, .timing-panel { min-width: 0; width: 48%; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="hero">
+      <div class="card intro">
+        <span class="badge">Protótipo browser · Anime sports RPG</span>
+        <h1>Z-Smash <span>Arena</span></h1>
+        <p>
+          Base jogável para validar o loop: rebater a bola no timing certo, escalar dano a cada troca,
+          carregar o superpoder da arma e somar atributos de equipamentos estilo MMO. A ideia não copia o jogo de referência;
+          usa o mesmo apelo de partida curta, visual chamativo e progressão por baús.
+        </p>
+        <div class="callout">
+          <b>Minha opinião de balanceamento:</b> sim, o dano precisa subir por rally para impedir luta eterna, mas o timing deve ser o multiplicador principal.
+          Assim o jogador bom vence por habilidade, e o equipamento acelera a partida sem virar pay-to-win absoluto.
+        </div>
+        <div class="pill-row">
+          <span class="pill">⚔️ Arma define Z-Power</span>
+          <span class="pill">🧢 Set soma HP/status</span>
+          <span class="pill">🎯 Perfect aumenta dano</span>
+          <span class="pill">🎁 Baús por ranked/loja</span>
+          <span class="pill">🔥 Dano escala por rebatida</span>
+        </div>
+      </div>
+      <div class="card section">
+        <h2>Loop de combate</h2>
+        <div class="formula">
+Dano do próximo impacto =
+  danoBaseArma
++ incrementoRally × númeroDeRebatidas
++ bônusLuvas
+× multiplicadorTiming
+× multiplicadorZPower(se carregado)
+
+Timing sugerido:
+PERFECT: centro da zona/arma = 1.55× dano + 2 cargas
+GOOD: dentro da zona = 1.15× dano + 1 carga
+LATE/EARLY: borda = 0.80× dano + 0 carga
+MISS: toma dano atual da bola
+        </div>
+        <p>
+          Clique em <b>Rebater</b> quando a bola entrar no círculo do player. Se a barra Z estiver cheia, use <b>Z-Power</b> no próximo rebate para testar o super da arma.
+        </p>
+        <div class="controls">
+          <button class="primary" id="startBtn">Iniciar rally</button>
+          <button class="pink" id="hitBtn">Rebater</button>
+          <button id="zBtn">Ativar Z-Power</button>
+          <button id="resetBtn">Resetar</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card game-card">
+      <div class="stage-wrap">
+        <canvas id="arena" width="760" height="720" aria-label="Protótipo jogável da arena Z-Smash"></canvas>
+        <div class="hud-top">
+          <div class="enemy-panel">
+            <div class="name">Rival: Kaito Void</div>
+            <div class="bar"><i id="enemyHp"></i></div>
+            <div class="stat" id="enemyStat">HP 100/100</div>
+          </div>
+          <div class="timing-panel">
+            <div class="name" id="rallyStat">Rally 0 · Dano 10</div>
+            <div class="stat">O dano sobe a cada rebate para encerrar a luta.</div>
+          </div>
+        </div>
+        <div class="hud-bottom">
+          <div class="player-panel">
+            <div class="name">Você: Recruta</div>
+            <div class="bar"><i id="playerHp"></i></div>
+            <div class="stat" id="playerStat">HP 100/100</div>
+          </div>
+          <div class="charge-panel">
+            <div class="name">Espada de Madeira · Impacto Pesado</div>
+            <div class="bar"><i id="chargeBar"></i></div>
+            <div class="stat" id="chargeStat">Carga Z 0/5</div>
+          </div>
+        </div>
+        <div class="toast" id="toast">PERFECT!</div>
+      </div>
+    </section>
+
+    <section class="grid" style="margin-top:18px">
+      <div class="card section">
+        <h2>Raridades e chances</h2>
+        <div class="rarity-list">
+          <div class="rarity"><b>⚪ Comum</b><span class="tag common">60%</span></div>
+          <div class="rarity"><b>🟢 Incomum</b><span class="tag uncommon">25%</span></div>
+          <div class="rarity"><b>🔵 Raro</b><span class="tag rareTag">10%</span></div>
+          <div class="rarity"><b>🟣 Épico</b><span class="tag epic">4%</span></div>
+          <div class="rarity"><b>🟡 Lendário</b><span class="tag legendary">1%</span></div>
+        </div>
+      </div>
+      <div class="card section">
+        <h2>10 armas iniciais</h2>
+        <div class="weapon-list" id="weaponList"></div>
+      </div>
+      <div class="card section">
+        <h2>5 arenas MVP</h2>
+        <div class="equip-list">
+          <div class="equip"><b>Campo Neon</b><span>tutorial/ranked bronze</span></div>
+          <div class="equip"><b>Dojo Solar</b><span>timing rápido</span></div>
+          <div class="equip"><b>Arena do Vazio</b><span>gravidade baixa</span></div>
+          <div class="equip"><b>Templo Dragão</b><span>VFX lendário</span></div>
+          <div class="equip"><b>Estádio Celestial</b><span>rank alto</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid" style="margin-top:18px">
+      <div class="card section">
+        <h2>Set do Recruta</h2>
+        <div class="equip-list">
+          <div class="equip"><b>Arma</b><span>Espada de Madeira · +10 dano</span></div>
+          <div class="equip"><b>Capacete</b><span>+5 DEF / anti-stun</span></div>
+          <div class="equip"><b>Armadura</b><span>+55 HP</span></div>
+          <div class="equip"><b>Luvas</b><span>+2 impacto</span></div>
+          <div class="equip"><b>Calças</b><span>+8 stamina</span></div>
+          <div class="equip"><b>Botas</b><span>+5 dash/pulo</span></div>
+        </div>
+      </div>
+      <div class="card section">
+        <h2>Baús</h2>
+        <p><b>Ranked:</b> ganha ao vencer, qualidade depende do elo e abre com tempo. Para abrir, precisa continuar vencendo partidas e preencher a barra de destrave.</p>
+        <p><b>Loja:</b> compra com Coins/Robux, abre na hora e pode ter versões premium com chances melhores, mas sempre mostrando porcentagens.</p>
+      </div>
+      <div class="card section">
+        <h2>Regra anti-luta infinita</h2>
+        <p>O rally começa com dano baixo para o jogador aprender. Depois de cada rebate, soma +10 de pressão. Após 8 rebatidas, ativa <b>Overtime</b>: +18 por rebate e a zona de timing reduz 8%.</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('arena');
+    const ctx = canvas.getContext('2d');
+    const playerHpEl = document.getElementById('playerHp');
+    const enemyHpEl = document.getElementById('enemyHp');
+    const playerStat = document.getElementById('playerStat');
+    const enemyStat = document.getElementById('enemyStat');
+    const chargeBar = document.getElementById('chargeBar');
+    const chargeStat = document.getElementById('chargeStat');
+    const rallyStat = document.getElementById('rallyStat');
+    const toast = document.getElementById('toast');
+
+    const weapons = [
+      ['Espada de Madeira', 'Impacto Pesado', 'Comum'],
+      ['Manopla Neon', 'Turbo Shot', 'Comum'],
+      ['Katana Relâmpago', 'Corte Duplo', 'Incomum'],
+      ['Martelo de Gravidade', 'Buraco de Peso', 'Raro'],
+      ['Foice Lunar', 'Curva Fantasma', 'Raro'],
+      ['Lança Solar', 'Raio Perfurante', 'Épico'],
+      ['Bastão Oni', 'Atordoar Rival', 'Épico'],
+      ['Canhão Dragão', 'Explosão Z', 'Lendário'],
+      ['Tridente Abissal', 'Maré Reversa', 'Lendário'],
+      ['Orbe Celestial', 'Tempo Congelado', 'Lendário']
+    ];
+
+    document.getElementById('weaponList').innerHTML = weapons.map(([name, power, rarity]) => {
+      const klass = rarity === 'Comum' ? 'common' : rarity === 'Incomum' ? 'uncommon' : rarity === 'Raro' ? 'rareTag' : rarity === 'Épico' ? 'epic' : 'legendary';
+      return `<div class="weapon"><b>${name}</b><span class="tag ${klass}">${power}</span></div>`;
+    }).join('');
+
+    const state = {
+      running: false,
+      zArmed: false,
+      rally: 0,
+      baseDamage: 10,
+      currentDamage: 10,
+      player: { hp: 100, maxHp: 100, x: 380, y: 610, zone: 92 },
+      enemy: { hp: 100, maxHp: 100, x: 380, y: 105, zone: 82 },
+      ball: { x: 380, y: 360, r: 24, dir: 1, speed: 4.8, trail: [] },
+      charge: 0,
+      maxCharge: 5,
+      lastText: 'START!'
+    };
+
+    function reset() {
+      Object.assign(state, {
+        running: false,
+        zArmed: false,
+        rally: 0,
+        currentDamage: 10,
+        charge: 0,
+        lastText: 'START!'
+      });
+      state.player.hp = state.player.maxHp;
+      state.enemy.hp = state.enemy.maxHp;
+      state.ball.x = 380;
+      state.ball.y = 360;
+      state.ball.dir = 1;
+      state.ball.speed = 4.8;
+      state.ball.trail = [];
+      updateHud();
+      draw();
+    }
+
+    function start() {
+      if (state.player.hp <= 0 || state.enemy.hp <= 0) reset();
+      state.running = true;
+      flash('RALLY!');
+    }
+
+    function flash(text) {
+      toast.textContent = text;
+      toast.classList.add('show');
+      clearTimeout(flash.t);
+      flash.t = setTimeout(() => toast.classList.remove('show'), 520);
+    }
+
+    function timingForPlayer() {
+      const dist = Math.abs(state.ball.y - state.player.y);
+      if (dist < 20) return { label: 'PERFECT!', mult: 1.55, charge: 2 };
+      if (dist < state.player.zone * 0.55) return { label: 'GOOD!', mult: 1.15, charge: 1 };
+      if (dist < state.player.zone) return { label: 'EARLY/LATE', mult: 0.8, charge: 0 };
+      return { label: 'MISS!', mult: 0, charge: 0 };
+    }
+
+    function hit() {
+      if (!state.running) return start();
+      if (state.ball.dir !== 1) return flash('NÃO É SUA VEZ');
+      const timing = timingForPlayer();
+      if (timing.label === 'MISS!') {
+        takeDamage('player', state.currentDamage);
+        flash('MISS!');
+        return;
+      }
+      const zMult = state.zArmed && state.charge >= state.maxCharge ? 2.35 : 1;
+      const damage = Math.round((state.baseDamage + state.rally * (state.rally >= 8 ? 18 : 10) + 2) * timing.mult * zMult);
+      state.currentDamage = damage;
+      state.charge = state.zArmed ? 0 : Math.min(state.maxCharge, state.charge + timing.charge);
+      state.zArmed = false;
+      state.rally += 1;
+      state.ball.dir = -1;
+      state.ball.speed = Math.min(12.5, state.ball.speed + 0.45);
+      state.lastText = `${timing.label} ${damage}`;
+      flash(state.lastText);
+      updateHud();
+    }
+
+    function enemyAutoHit() {
+      const perfectChance = Math.min(0.46, 0.22 + state.rally * 0.018);
+      const roll = Math.random();
+      let mult = 1.0;
+      let label = 'RIVAL GOOD';
+      if (roll < perfectChance) { mult = 1.38; label = 'RIVAL PERFECT'; }
+      else if (roll > 0.88) { mult = 0.78; label = 'RIVAL FRACO'; }
+      const damage = Math.round((state.baseDamage + state.rally * (state.rally >= 8 ? 18 : 10)) * mult);
+      state.currentDamage = damage;
+      state.rally += 1;
+      state.ball.dir = 1;
+      state.ball.speed = Math.min(12.5, state.ball.speed + 0.38);
+      state.lastText = `${label} ${damage}`;
+      flash(state.lastText);
+      updateHud();
+    }
+
+    function takeDamage(target, amount) {
+      state[target].hp = Math.max(0, state[target].hp - amount);
+      state.running = state.player.hp > 0 && state.enemy.hp > 0;
+      updateHud();
+      flash(state[target].hp <= 0 ? (target === 'enemy' ? 'VITÓRIA!' : 'DERROTA!') : `-${amount} HP`);
+    }
+
+    function activateZ() {
+      if (state.charge < state.maxCharge) return flash('Z AINDA CARREGANDO');
+      state.zArmed = true;
+      flash('Z-POWER ARMADO');
+      updateHud();
+    }
+
+    function updateHud() {
+      playerHpEl.style.width = `${100 * state.player.hp / state.player.maxHp}%`;
+      enemyHpEl.style.width = `${100 * state.enemy.hp / state.enemy.maxHp}%`;
+      playerStat.textContent = `HP ${state.player.hp}/${state.player.maxHp}`;
+      enemyStat.textContent = `HP ${state.enemy.hp}/${state.enemy.maxHp}`;
+      chargeBar.style.width = `${100 * state.charge / state.maxCharge}%`;
+      chargeStat.textContent = state.zArmed ? 'Z-Power armado no próximo rebate' : `Carga Z ${state.charge}/${state.maxCharge}`;
+      rallyStat.textContent = `Rally ${state.rally} · Dano ${state.currentDamage}${state.rally >= 8 ? ' · OVERTIME' : ''}`;
+    }
+
+    function drawField() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const grd = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      grd.addColorStop(0, '#49e582');
+      grd.addColorStop(0.5, '#2ccf6d');
+      grd.addColorStop(1, '#22b85e');
+      ctx.fillStyle = grd;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = 'rgba(255,255,255,0.75)';
+      ctx.lineWidth = 6;
+      ctx.strokeRect(42, 40, canvas.width - 84, canvas.height - 80);
+      ctx.beginPath();
+      ctx.moveTo(42, 360); ctx.lineTo(canvas.width - 42, 360); ctx.stroke();
+      ctx.fillStyle = '#7de8ff';
+      ctx.fillRect(42, 348, canvas.width - 84, 24);
+      ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+      ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.arc(380, 360, 118, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(380, 108, 92, 0, Math.PI); ctx.stroke();
+      ctx.beginPath(); ctx.arc(380, 612, 92, Math.PI, Math.PI * 2); ctx.stroke();
+      for (let x = 48; x < canvas.width - 48; x += 72) {
+        ctx.fillStyle = '#ffb32d';
+        roundRect(ctx, x, 22, 58, 18, 8); ctx.fill();
+        roundRect(ctx, x, canvas.height - 40, 58, 18, 8); ctx.fill();
+      }
+    }
+
+    function roundRect(c, x, y, w, h, r) {
+      c.beginPath();
+      c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r);
+      c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath();
+    }
+
+    function drawCharacter(x, y, color, facing) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(facing, 1);
+      ctx.fillStyle = 'rgba(0,0,0,0.22)';
+      ctx.beginPath(); ctx.ellipse(0, 32, 38, 12, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = color;
+      roundRect(ctx, -24, -18, 48, 54, 12); ctx.fill();
+      ctx.fillStyle = '#ffd5b2';
+      ctx.beginPath(); ctx.arc(0, -38, 22, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ff593d';
+      ctx.beginPath(); ctx.moveTo(-25, -52); ctx.lineTo(-6, -82); ctx.lineTo(4, -55); ctx.lineTo(26, -76); ctx.lineTo(18, -40); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#151b35'; ctx.lineWidth = 5;
+      ctx.beginPath(); ctx.moveTo(24, -8); ctx.lineTo(64, -30); ctx.stroke();
+      ctx.fillStyle = '#ff2bd6';
+      roundRect(ctx, 52, -45, 26, 58, 10); ctx.fill();
+      ctx.restore();
+    }
+
+    function drawBall() {
+      state.ball.trail.push({ x: state.ball.x, y: state.ball.y });
+      if (state.ball.trail.length > 8) state.ball.trail.shift();
+      state.ball.trail.forEach((p, i) => {
+        ctx.globalAlpha = i / 10;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(p.x, p.y, 5 + i * 1.2, 0, Math.PI * 2); ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+      const pulse = 1 + Math.sin(Date.now() / 90) * 0.08;
+      ctx.fillStyle = state.zArmed ? '#ffe04b' : '#ff304d';
+      ctx.beginPath(); ctx.arc(state.ball.x, state.ball.y, state.ball.r * pulse, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 5; ctx.strokeStyle = '#fff'; ctx.stroke();
+      ctx.fillStyle = '#fff'; ctx.font = '900 26px Inter, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.strokeStyle = '#071335'; ctx.lineWidth = 5; ctx.strokeText(String(state.currentDamage), state.ball.x, state.ball.y + 1);
+      ctx.fillText(String(state.currentDamage), state.ball.x, state.ball.y + 1);
+    }
+
+    function drawZones() {
+      const shrink = state.rally >= 8 ? 0.92 : 1;
+      ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineWidth = 3;
+      ctx.fillStyle = 'rgba(255,255,255,0.16)';
+      ctx.beginPath(); ctx.arc(state.player.x, state.player.y, state.player.zone * shrink, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle = '#ff2bd6'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.arc(state.player.x, state.player.y, 20, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.moveTo(state.player.x, state.player.y - state.player.zone - 16); ctx.lineTo(state.player.x - 10, state.player.y - state.player.zone - 2); ctx.lineTo(state.player.x + 10, state.player.y - state.player.zone - 2); ctx.closePath(); ctx.fill();
+    }
+
+    function draw() {
+      drawField();
+      drawZones();
+      drawCharacter(state.enemy.x, state.enemy.y, '#86f2ff', -1);
+      drawCharacter(state.player.x, state.player.y, '#b8ff29', 1);
+      drawBall();
+    }
+
+    function tick() {
+      if (state.running) {
+        state.ball.y += state.ball.dir * state.ball.speed;
+        const targetY = state.ball.dir === 1 ? state.player.y + state.player.zone + 22 : state.enemy.y - state.enemy.zone - 22;
+        if (state.ball.dir === 1 && state.ball.y > targetY) takeDamage('player', state.currentDamage);
+        if (state.ball.dir === -1 && state.ball.y < state.enemy.y + 30) {
+          if (Math.random() < 0.16) takeDamage('enemy', state.currentDamage);
+          else enemyAutoHit();
+        }
+      }
+      draw();
+      requestAnimationFrame(tick);
+    }
+
+    document.getElementById('startBtn').addEventListener('click', start);
+    document.getElementById('hitBtn').addEventListener('click', hit);
+    document.getElementById('zBtn').addEventListener('click', activateZ);
+    document.getElementById('resetBtn').addEventListener('click', reset);
+    window.addEventListener('keydown', (event) => {
+      if (event.code === 'Space') { event.preventDefault(); hit(); }
+      if (event.key.toLowerCase() === 'z') activateZ();
+      if (event.key.toLowerCase() === 'r') reset();
+    });
+
+    reset();
+    tick();
+  </script>
+</body>
+</html>
