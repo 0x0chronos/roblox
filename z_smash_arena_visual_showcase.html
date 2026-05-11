@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Z-Smash Arena — Visual Target</title>
+  <style>
+    :root {
+      --ink: #07102c;
+      --deep: #0b1450;
+      --cyan: #2ef4ff;
+      --blue: #2587ff;
+      --pink: #ff2bd6;
+      --purple: #8d46ff;
+      --lime: #b6ff2f;
+      --gold: #ffd84a;
+      --panel: rgba(7, 16, 44, .78);
+      --line: rgba(255,255,255,.2);
+      --text: #f8fbff;
+      --muted: rgba(248,251,255,.7);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 18% 12%, rgba(46,244,255,.34), transparent 26%),
+        radial-gradient(circle at 82% 5%, rgba(255,43,214,.28), transparent 28%),
+        radial-gradient(circle at 50% 90%, rgba(182,255,47,.16), transparent 35%),
+        linear-gradient(180deg, #102578 0%, #090f38 58%, #030617 100%);
+      overflow-x: hidden;
+    }
+    .page { max-width: 1380px; margin: 0 auto; padding: 28px; }
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 460px;
+      gap: 24px;
+      align-items: stretch;
+      margin-bottom: 24px;
+    }
+    .glass {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 34px;
+      box-shadow: 0 28px 90px rgba(0,0,0,.34), inset 0 1px rgba(255,255,255,.12);
+      backdrop-filter: blur(16px);
+      overflow: hidden;
+    }
+    .intro { padding: 34px; position: relative; }
+    .intro:after {
+      content: "";
+      position: absolute;
+      width: 280px; height: 280px;
+      right: -90px; bottom: -120px;
+      background: radial-gradient(circle, rgba(255,43,214,.34), transparent 68%);
+      pointer-events: none;
+    }
+    .eyebrow {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid rgba(46,244,255,.38);
+      border-radius: 999px;
+      padding: 8px 13px;
+      background: rgba(46,244,255,.13);
+      color: #c7fbff;
+      font-weight: 950;
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 16px 0 12px;
+      font-size: clamp(44px, 8vw, 112px);
+      line-height: .82;
+      letter-spacing: -.08em;
+      text-transform: uppercase;
+      text-shadow: 0 6px 0 #010716, 0 0 34px rgba(46,244,255,.34);
+    }
+    h1 span { color: var(--pink); }
+    p { color: var(--muted); line-height: 1.58; font-size: 16px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+    .chip {
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.09);
+      border: 1px solid rgba(255,255,255,.11);
+      font-weight: 850;
+      color: #fff;
+    }
+    .phone {
+      padding: 18px;
+      background: linear-gradient(160deg, rgba(255,255,255,.16), rgba(255,255,255,.04));
+    }
+    .phone-shell {
+      margin: auto;
+      width: min(100%, 390px);
+      aspect-ratio: 9 / 16;
+      border-radius: 42px;
+      padding: 14px;
+      background: linear-gradient(145deg, #11182f, #040710);
+      border: 2px solid rgba(255,255,255,.24);
+      box-shadow: 0 26px 70px rgba(0,0,0,.48);
+      position: relative;
+    }
+    .phone-shell:before {
+      content: "";
+      position: absolute;
+      top: 9px; left: 50%; transform: translateX(-50%);
+      width: 94px; height: 7px;
+      background: #02040b;
+      border-radius: 999px;
+      z-index: 4;
+    }
+    .screen {
+      position: relative;
+      width: 100%; height: 100%;
+      border-radius: 31px;
+      overflow: hidden;
+      background: #34d46c;
+    }
+    .screen svg { display: block; width: 100%; height: 100%; }
+    .caption { padding: 14px 4px 0; text-align: center; color: var(--muted); font-weight: 700; }
+    .showcase-grid {
+      display: grid;
+      grid-template-columns: 1.35fr .85fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    .panel { padding: 22px; }
+    h2 { margin: 0 0 14px; font-size: 30px; letter-spacing: -.035em; }
+    h3 { margin: 0 0 10px; }
+    .visual-board {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .mock-card {
+      min-height: 250px;
+      border-radius: 26px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.14);
+      overflow: hidden;
+      position: relative;
+    }
+    .mock-card.large { min-height: 360px; }
+    .mock-head {
+      position: absolute;
+      top: 14px; left: 14px; right: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 2;
+    }
+    .label {
+      font-size: 12px;
+      font-weight: 950;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.38);
+      border: 1px solid rgba(255,255,255,.18);
+    }
+    .mini-svg { width: 100%; height: 100%; min-height: inherit; display: block; }
+    .notes { display: grid; gap: 14px; }
+    .note {
+      padding: 16px;
+      border-radius: 22px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.12);
+    }
+    .note b { color: #fff; }
+    .swatches { display: grid; gap: 12px; }
+    .swatch {
+      display: grid;
+      grid-template-columns: 42px 1fr auto;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.11);
+      font-weight: 850;
+    }
+    .dot { width: 34px; height: 34px; border-radius: 50%; box-shadow: 0 0 22px currentColor; }
+    .percent { color: var(--muted); font-size: 13px; }
+    .footer-note {
+      padding: 20px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .cta {
+      display: inline-flex;
+      text-decoration: none;
+      color: #06102c;
+      background: linear-gradient(180deg, #fff466, #ff9f27);
+      padding: 13px 18px;
+      border-radius: 16px;
+      box-shadow: 0 6px 0 #8a4300;
+      font-weight: 1000;
+      text-transform: uppercase;
+    }
+    @media (max-width: 1050px) {
+      .hero, .showcase-grid { grid-template-columns: 1fr; }
+      .phone-shell { max-width: 360px; }
+    }
+    @media (max-width: 720px) {
+      .page { padding: 14px; }
+      .visual-board { grid-template-columns: 1fr; }
+      .intro { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="glass intro">
+        <span class="eyebrow">Visual target · browser / Roblox-like</span>
+        <h1>Z-Smash <span>Arena</span></h1>
+        <p>
+          Esta tela mostra como o jogo pode ficar: câmera vertical de arena, personagem anime estilizado,
+          bola com dano no centro, HUD de HP, medidor de timing, botão de Z-Power e UI de loot com cores fortes.
+          A direção é mais “arcade premium” do que realista: formas grandes, VFX legível e muita recompensa visual.
+        </p>
+        <div class="chips">
+          <span class="chip">⚡ Partidas rápidas</span>
+          <span class="chip">🎯 Timing Perfect</span>
+          <span class="chip">🔥 Dano escalável</span>
+          <span class="chip">🟣 Loot chamativo</span>
+          <span class="chip">🧢 Set MMO</span>
+        </div>
+      </div>
+      <aside class="glass phone" aria-label="Mockup mobile da partida Z-Smash Arena">
+        <div class="phone-shell">
+          <div class="screen">
+            <svg viewBox="0 0 390 694" role="img" aria-label="Tela de gameplay vertical com quadra, personagens, bola e HUD">
+              <defs>
+                <linearGradient id="field" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#48ed84"/><stop offset=".52" stop-color="#2bce6c"/><stop offset="1" stop-color="#21ad5a"/></linearGradient>
+                <linearGradient id="orange" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ffd34d"/><stop offset="1" stop-color="#ff8a22"/></linearGradient>
+                <linearGradient id="pink" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff77ec"/><stop offset="1" stop-color="#8d46ff"/></linearGradient>
+                <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                <filter id="shadow"><feDropShadow dx="0" dy="8" stdDeviation="6" flood-opacity=".32"/></filter>
+              </defs>
+              <rect width="390" height="694" fill="url(#field)"/>
+              <g opacity=".28"><path d="M0 106h390M0 588h390" stroke="#09224a" stroke-width="34"/><path d="M0 346h390" stroke="#7df5ff" stroke-width="20"/></g>
+              <rect x="25" y="35" width="340" height="624" rx="10" fill="none" stroke="white" stroke-opacity=".72" stroke-width="5"/>
+              <path d="M25 347h340" stroke="white" stroke-opacity=".72" stroke-width="5"/>
+              <circle cx="195" cy="347" r="92" fill="none" stroke="white" stroke-opacity=".46" stroke-width="4"/>
+              <path d="M106 110a89 89 0 0 0 178 0" fill="none" stroke="white" stroke-opacity=".46" stroke-width="4"/>
+              <path d="M106 584a89 89 0 0 1 178 0" fill="none" stroke="white" stroke-opacity=".46" stroke-width="4"/>
+              <g fill="url(#orange)"><rect x="32" y="20" width="44" height="18" rx="8"/><rect x="84" y="20" width="44" height="18" rx="8"/><rect x="136" y="20" width="44" height="18" rx="8"/><rect x="188" y="20" width="44" height="18" rx="8"/><rect x="240" y="20" width="44" height="18" rx="8"/><rect x="292" y="20" width="44" height="18" rx="8"/><rect x="32" y="656" width="44" height="18" rx="8"/><rect x="84" y="656" width="44" height="18" rx="8"/><rect x="136" y="656" width="44" height="18" rx="8"/><rect x="188" y="656" width="44" height="18" rx="8"/><rect x="240" y="656" width="44" height="18" rx="8"/><rect x="292" y="656" width="44" height="18" rx="8"/></g>
+              <g filter="url(#shadow)">
+                <text x="195" y="58" text-anchor="middle" fill="white" font-size="14" font-weight="1000" stroke="#09122b" stroke-width="4" paint-order="stroke">Kaito Void</text>
+                <rect x="145" y="66" width="100" height="14" rx="7" fill="#07102c"/><rect x="150" y="69" width="72" height="8" rx="4" fill="#ff3655"/><rect x="150" y="80" width="100" height="5" rx="3" fill="#07102c"/><rect x="150" y="80" width="45" height="5" rx="3" fill="#ffd84a"/>
+              </g>
+              <g transform="translate(195 126)" filter="url(#shadow)">
+                <ellipse cx="0" cy="38" rx="40" ry="13" fill="#000" opacity=".22"/>
+                <path d="M-28 -4c13-30 47-30 59 0l-7 45h-45z" fill="#8af6ff"/><circle cx="0" cy="-26" r="22" fill="#ffd1a8"/><path d="M-26-33l14-32 7 24 24-25-4 37z" fill="#3ae7ff"/><path d="M24 4l52-24" stroke="#07102c" stroke-width="10" stroke-linecap="round"/><path d="M56-40l34 46" stroke="#d5faff" stroke-width="13" stroke-linecap="round"/></g>
+              <g filter="url(#glow)"><circle cx="195" cy="344" r="29" fill="#ff2f48"/><circle cx="195" cy="344" r="29" fill="none" stroke="white" stroke-width="5"/><text x="195" y="353" text-anchor="middle" fill="white" font-size="27" font-weight="1000" stroke="#07102c" stroke-width="5" paint-order="stroke">223</text></g>
+              <g opacity=".95" fill="#fff"><circle cx="195" cy="388" r="7"/><circle cx="195" cy="415" r="6"/><circle cx="195" cy="439" r="5"/><circle cx="195" cy="461" r="4"/></g>
+              <circle cx="195" cy="540" r="98" fill="white" opacity=".18" stroke="white" stroke-opacity=".38" stroke-width="3"/>
+              <g transform="translate(195 555)" filter="url(#shadow)">
+                <ellipse cx="0" cy="42" rx="48" ry="15" fill="#000" opacity=".24"/>
+                <path d="M-30 -6c13-34 51-35 65 0l-10 53h-45z" fill="#c9ff2f"/><circle cx="0" cy="-33" r="23" fill="#ffd1a8"/><path d="M-29-42l15-33 8 23 18-31 5 34 22-20-7 35z" fill="#ff563b"/><path d="M25 2l59-26" stroke="#161a35" stroke-width="12" stroke-linecap="round"/><rect x="62" y="-52" width="29" height="68" rx="12" fill="url(#pink)"/><path d="M-20 20l-22 34M18 22l25 32" stroke="#151b35" stroke-width="11" stroke-linecap="round"/></g>
+              <g filter="url(#shadow)"><text x="195" y="642" text-anchor="middle" fill="#ff82f2" font-size="44" font-weight="1000" stroke="white" stroke-width="5" paint-order="stroke">PERFECT!</text></g>
+              <g transform="translate(20 596)"><rect width="128" height="42" rx="14" fill="#07102c" opacity=".82"/><rect x="12" y="10" width="96" height="12" rx="6" fill="#111827" stroke="#000"/><rect x="15" y="13" width="68" height="6" rx="3" fill="#54ff58"/><text x="60" y="36" text-anchor="middle" fill="white" font-size="14" font-weight="1000">HP 1398</text></g>
+              <g transform="translate(250 526)"><rect width="76" height="118" rx="22" fill="#07102c" opacity=".84"/><path d="M38 96V24" stroke="#fff" stroke-width="14" stroke-linecap="round"/><path d="M38 96V52" stroke="url(#pink)" stroke-width="14" stroke-linecap="round"/><text x="38" y="20" text-anchor="middle" fill="white" font-size="16" font-weight="1000">Z</text></g>
+            </svg>
+          </div>
+        </div>
+        <div class="caption">Tela de gameplay vertical: legível para mobile, mas também funciona no browser desktop.</div>
+      </aside>
+    </section>
+
+    <section class="showcase-grid">
+      <div class="glass panel">
+        <h2>Como ficariam as telas principais</h2>
+        <div class="visual-board">
+          <article class="mock-card large">
+            <div class="mock-head"><span class="label">Menu inicial</span><span class="label">Anime lobby</span></div>
+            <svg class="mini-svg" viewBox="0 0 520 360" aria-label="Mockup do menu inicial">
+              <defs><linearGradient id="m1" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#2ef4ff"/><stop offset=".5" stop-color="#2785ff"/><stop offset="1" stop-color="#ff2bd6"/></linearGradient><filter id="s"><feDropShadow dx="0" dy="10" stdDeviation="8" flood-opacity=".35"/></filter></defs>
+              <rect width="520" height="360" fill="url(#m1)"/><circle cx="420" cy="70" r="120" fill="#fff" opacity=".12"/><path d="M0 290c80-42 160-45 250-8s180 28 270-24v102H0z" fill="#b6ff2f"/>
+              <g filter="url(#s)" transform="translate(260 170)"><ellipse cx="0" cy="84" rx="88" ry="18" fill="#000" opacity=".22"/><path d="M-38-15c15-45 64-45 82 0L30 70h-58z" fill="#caff2f"/><circle cx="0" cy="-56" r="32" fill="#ffd4ad"/><path d="M-40-64l21-50 12 38 25-48 10 52 32-30-11 54z" fill="#ff5a3e"/><rect x="54" y="-64" width="42" height="98" rx="16" fill="#ff2bd6"/><path d="M33-12l52-28" stroke="#07102c" stroke-width="16" stroke-linecap="round"/></g>
+              <text x="38" y="74" fill="white" font-size="58" font-weight="1000" stroke="#07102c" stroke-width="8" paint-order="stroke">Z-SMASH</text><text x="43" y="124" fill="#ff2bd6" font-size="44" font-weight="1000" stroke="white" stroke-width="5" paint-order="stroke">ARENA</text>
+              <rect x="42" y="192" width="150" height="52" rx="18" fill="#ffd84a"/><text x="117" y="226" text-anchor="middle" fill="#07102c" font-size="22" font-weight="1000">JOGAR</text><rect x="42" y="255" width="150" height="40" rx="15" fill="#07102c" opacity=".82"/><text x="117" y="282" text-anchor="middle" fill="white" font-size="15" font-weight="900">EQUIPAR</text>
+            </svg>
+          </article>
+          <article class="mock-card large">
+            <div class="mock-head"><span class="label">Inventário</span><span class="label">Set MMO</span></div>
+            <svg class="mini-svg" viewBox="0 0 520 360" aria-label="Mockup de inventário e equipamentos">
+              <rect width="520" height="360" fill="#07102c"/><circle cx="386" cy="115" r="170" fill="#2ef4ff" opacity=".12"/><circle cx="140" cy="300" r="130" fill="#ff2bd6" opacity=".12"/>
+              <rect x="24" y="22" width="472" height="316" rx="28" fill="#13215a" stroke="#ffffff" stroke-opacity=".18"/>
+              <text x="48" y="62" fill="white" font-size="28" font-weight="1000">LOADOUT</text><text x="48" y="88" fill="#aab8ff" font-size="13" font-weight="800">HP total: 1450 · Set Dragão 4/6</text>
+              <g transform="translate(55 112)"><rect width="88" height="88" rx="18" fill="#1d2f72" stroke="#37a8ff"/><text x="44" y="53" text-anchor="middle" font-size="28">🧢</text><text x="44" y="110" text-anchor="middle" fill="#fff" font-size="12" font-weight="800">Capacete</text></g>
+              <g transform="translate(162 112)"><rect width="88" height="88" rx="18" fill="#1d2f72" stroke="#ba5cff"/><text x="44" y="53" text-anchor="middle" font-size="28">🛡️</text><text x="44" y="110" text-anchor="middle" fill="#fff" font-size="12" font-weight="800">Armadura</text></g>
+              <g transform="translate(269 112)"><rect width="88" height="88" rx="18" fill="#1d2f72" stroke="#37ff7b"/><text x="44" y="53" text-anchor="middle" font-size="28">🥊</text><text x="44" y="110" text-anchor="middle" fill="#fff" font-size="12" font-weight="800">Luvas</text></g>
+              <g transform="translate(376 112)"><rect width="88" height="88" rx="18" fill="#1d2f72" stroke="#ffe04b"/><text x="44" y="53" text-anchor="middle" font-size="28">⚔️</text><text x="44" y="110" text-anchor="middle" fill="#fff" font-size="12" font-weight="800">Arma Z</text></g>
+              <rect x="54" y="258" width="412" height="46" rx="18" fill="#07102c" opacity=".85"/><rect x="67" y="273" width="250" height="16" rx="8" fill="#ffd84a"/><text x="332" y="286" fill="white" font-size="14" font-weight="900">Sinergia +15% HP</text>
+            </svg>
+          </article>
+          <article class="mock-card">
+            <div class="mock-head"><span class="label">Baú ranked</span><span class="label">timer</span></div>
+            <svg class="mini-svg" viewBox="0 0 520 250" aria-label="Mockup de baú ranked">
+              <rect width="520" height="250" fill="#0e1744"/><circle cx="384" cy="116" r="120" fill="#ffe04b" opacity=".14"/><g transform="translate(70 66)"><path d="M0 50h170v84H0z" fill="#b25c1c"/><path d="M16 0h138l20 50H-4z" fill="#ffb438"/><rect x="70" y="48" width="32" height="38" rx="8" fill="#ffe04b"/><path d="M0 50h170" stroke="#5b2a0e" stroke-width="8"/></g><text x="282" y="72" fill="white" font-size="30" font-weight="1000">BAÚ OURO</text><text x="282" y="104" fill="#aab8ff" font-size="15" font-weight="800">Abre em 3 vitórias ou 02:45:00</text><rect x="282" y="130" width="170" height="18" rx="9" fill="#07102c"/><rect x="282" y="130" width="96" height="18" rx="9" fill="#b6ff2f"/><rect x="282" y="166" width="132" height="42" rx="15" fill="#ff2bd6"/><text x="348" y="193" text-anchor="middle" fill="white" font-size="15" font-weight="1000">ABRIR AGORA</text>
+            </svg>
+          </article>
+          <article class="mock-card">
+            <div class="mock-head"><span class="label">Resultado</span><span class="label">loot</span></div>
+            <svg class="mini-svg" viewBox="0 0 520 250" aria-label="Mockup de tela de vitória e loot">
+              <rect width="520" height="250" fill="#07102c"/><path d="M0 190c80-60 176-54 278-20s172 12 242-30v110H0z" fill="#2bce6c"/><text x="260" y="64" text-anchor="middle" fill="#ffd84a" font-size="44" font-weight="1000" stroke="#07102c" stroke-width="8" paint-order="stroke">VITÓRIA!</text><g transform="translate(95 96)"><rect width="330" height="96" rx="24" fill="#13215a" stroke="#ffffff" stroke-opacity=".18"/><circle cx="58" cy="48" r="34" fill="#ba5cff"/><text x="58" y="60" text-anchor="middle" font-size="33">🌙</text><text x="112" y="42" fill="white" font-size="21" font-weight="1000">Foice Lunar</text><text x="112" y="68" fill="#ba5cff" font-size="14" font-weight="1000">RARO · Curva Fantasma</text></g>
+            </svg>
+          </article>
+        </div>
+      </div>
+
+      <aside class="glass panel">
+        <h2>Direção de arte</h2>
+        <div class="notes">
+          <div class="note"><b>Personagens:</b> cabeça/cabelo grandes, silhueta clara e arma exagerada para leitura rápida durante o rally.</div>
+          <div class="note"><b>Gameplay:</b> bola sempre no centro de atenção, com número de dano grande e trilha branca para indicar velocidade.</div>
+          <div class="note"><b>HUD:</b> barras curtas e grossas, texto alto contraste, botão Z destacado quando cheio.</div>
+          <div class="note"><b>Monetização:</b> baús bonitos e transparentes nas porcentagens, evitando vender vitória direta.</div>
+        </div>
+        <h2 style="margin-top:24px">Paleta de raridade</h2>
+        <div class="swatches">
+          <div class="swatch"><i class="dot" style="color:#fff;background:#fff"></i><span>Comum</span><span class="percent">60%</span></div>
+          <div class="swatch"><i class="dot" style="color:#37ff7b;background:#37ff7b"></i><span>Incomum</span><span class="percent">25%</span></div>
+          <div class="swatch"><i class="dot" style="color:#37a8ff;background:#37a8ff"></i><span>Raro</span><span class="percent">10%</span></div>
+          <div class="swatch"><i class="dot" style="color:#ba5cff;background:#ba5cff"></i><span>Épico</span><span class="percent">4%</span></div>
+          <div class="swatch"><i class="dot" style="color:#ffe04b;background:#ffe04b"></i><span>Lendário</span><span class="percent">1%</span></div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="glass footer-note">
+      <div>
+        <h3>Próximo passo</h3>
+        <p>Transformar esse visual target em assets reais: sprites/modelos Roblox, VFX de Perfect, ícones de armas e uma primeira arena jogável com UI final.</p>
+      </div>
+      <a class="cta" href="z_smash_arena_prototype.html">Abrir protótipo jogável</a>
+    </section>
+  </main>
+</body>
+</html>
